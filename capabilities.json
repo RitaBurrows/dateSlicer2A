@@ -1,84 +1,50 @@
 {
     "dataRoles": [
         {
-            "displayName": "Category Data",
-            "name": "category",
-            "kind": "Grouping"
-        },
+            "displayName": "Date",
+            "name": "Time",
+            "kind": "Grouping",
+            "displayNameKey": "Date_Full"
+        }
+    ],
+    "dataViewMappings": [
         {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
+            "conditions": [
+                {
+                    "Time": {
+                        "max": 1
+                    }
+                }
+            ],
+            "categorical": {
+                "categories": {
+                    "for": {
+                        "in": "Time"
+                    },
+                    "dataReductionAlgorithm": {
+                        "sample": {}
+                    }
+                }
+            }
         }
     ],
     "objects": {
         "general": {
             "displayName": "General",
+            "displayNameKey": "Visual_General",
             "properties": {
-            }
-        },
-        "dataPoint": {
-            "properties": {
-                "defaultColor": {
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "showAllDataPoints": {
+                "selected": {
                     "type": {
                         "bool": true
                     }
                 },
-                "fill": {
+                "filter": {
                     "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fillRule": {
-                    "type": {
-                        "fill": {}
-                    }
-                },
-                "fontSize": {
-                    "type": {
-                        "formatting": {
-                            "fontSize": true
-                        }
+                        "filter": true
                     }
                 }
             }
         }
     },
-    "dataViewMappings": [
-        {
-            "categorical": {
-                "categories": {
-                    "for": {
-                        "in": "category"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {}
-                    }
-                },
-                "values": {
-                    "select": [
-                        {
-                            "bind": {
-                                "to": "measure"
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-    ],
     "privileges": []
 }

@@ -6,8 +6,87 @@ p em {
   background: yellow;
   padding: 5px;
 }
-div {
-  color: darkblue;
+.calendarRoot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  color: #255A91;
+}
+.calendarRoot .dropDownContainer .dateRangeDropdown {
+  height: 30px;
+  width: 180px;
+  font-size: 12px;
+  color: #255A91;
+}
+.calendarRoot .dropDownContainer select {
+  cursor: pointer;
+}
+.calendarRoot .customDateContainer {
+  align-items: center;
+}
+.calendarRoot .customDateContainer .dateInputContainer {
+  display: flex;
+}
+.calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer,
+.calendarRoot .customDateContainer .dateInputContainer .endDateInputContainer {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+.calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer input,
+.calendarRoot .customDateContainer .dateInputContainer .endDateInputContainer input {
+  width: 100px;
+  height: 30px;
+  font-size: 12px;
+  color: #255A91;
+  box-sizing: border-box;
+  /* Ensure padding doesn't affect total width */
+  padding-right: 30px;
+  /* Space for the icon */
+}
+.calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer .calendarIcon,
+.calendarRoot .customDateContainer .dateInputContainer .endDateInputContainer .calendarIcon {
+  position: absolute;
+  transform: translateY(-50%);
+  right: 5px;
+  top: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.calendarRoot .calendarContainer {
+  position: absolute;
+  top: 80px;
+  left: 0px;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: 310px;
+  width: 100%;
+  max-width: 400px;
+}
+.calendarRoot .calendarContainer .calendarSvg .arrowUp,
+.calendarRoot .calendarContainer .calendarSvg .arrowDown {
+  font-size: 12px;
+  fill: #255A91;
+  cursor: pointer;
+  display: auto;
+}
+.calendarRoot .calendarContainer .calendarSvg .monthLabel {
+  text-anchor: end;
+  font-size: 18px;
+  fill: #255A91;
+}
+.calendarRoot .containerLabel {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.calendarRoot .disabled {
+  opacity: 0.5;
 }
 
 

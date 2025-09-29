@@ -11,6 +11,128 @@ p {
     }
 }
 
-div {
-    color: darkblue;
+//div {
+//    
+        
+//}
+
+body {
+
+
+}
+
+.calendarRoot {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    color: #255A91;
+
+    //.calendarSvg {
+       // display: none;
+    //}
+
+    .dropDownContainer {
+        //margin-right: 10px;
+        //width: 2px;
+        
+        .dateRangeDropdown {
+            height: 30px;
+            width: 180px;
+            font-size: 12px;
+            //padding: 4px;
+            color: #255A91;
+        }
+
+        select {
+            cursor: pointer;
+        }
+    }
+
+    //
+
+    .customDateContainer {        
+        //width: 230px;
+        //width: 50%;
+        //display: flex;
+        align-items: center;
+        
+        .dateInputContainer {
+            display: flex;
+            
+            .startDateInputContainer, .endDateInputContainer {
+            position: relative;
+            display: inline-block;
+            margin-right: 8px;
+
+                input {
+                    width: 100px;
+                    height: 30px;
+                    //cursor: pointer;
+                    font-size: 12px;
+                    //padding: 4px;
+                    color: #255A91;
+                    //gap: 4px;
+                    box-sizing: border-box; /* Ensure padding doesn't affect total width */
+                    padding-right: 30px; /* Space for the icon */
+                }
+                .calendarIcon {
+                    position: absolute;
+                    transform: translateY(-50%);
+                    right: 5px;
+                    top: 50%;
+                    font-size: 12px;
+                    //width: 16px;
+                    //height: 16px;
+                    //vertical-align: middle;
+                    //margin-left: 4px;
+                    cursor: pointer;
+                    user-select: none;
+                }
+            }
+        }
+    }
+   
+
+    .calendarContainer {
+        position: absolute;
+        top: 80px;
+        left: 0px;
+        z-index: 1000;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        height: 310px;
+        width: 100%;
+        max-width: 400px;
+
+            .calendarSvg {
+
+                .arrowUp, .arrowDown {
+                    font-size: 12px;
+                    fill: #255A91;
+                    cursor: pointer;
+                    display: auto;
+                }
+
+                .monthLabel {                    
+                    text-anchor: end;
+                    font-size: 18px;
+                    fill: #255A91;
+                }
+            }
+    }
+    
+
+        .containerLabel {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+    .disabled {
+        //; //auto
+        opacity: 0.5; //1
+    }
 }

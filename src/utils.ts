@@ -12,7 +12,7 @@ import {
 import { IGranularityName } from "./granularity/granularityName";
 import { GranularityNames } from "./granularity/granularityNames";
 import { GranularityType } from "./granularity/granularityType";
-import {CellsSettingsCard} from "./timeLineSettingsModel";
+import { CellsSettingsCard } from "./timeLineSettingsModel";
 
 export class Utils {
     public static DefaultCellColor: string = "transparent";
@@ -21,19 +21,30 @@ export class Utils {
     public static TotalMinutes: number = 60;
     public static TotalHours: number = 24;
 
-    public static normaliseDate(date: Date): Date {
+    public static formatDate(date: Date): string {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    public static normaliseStartDate(date: Date): Date {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
-    public static  getFirstDayOfMonth(year: number, month: number): number {
+    public static normaliseEndDate(date: Date): Date {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+    }
+
+    public static getFirstDayOfMonth(year: number, month: number): number {
         return new Date(year, month, 1).getDay();
     }
 
-    public static  getNumberofDaysInCurrMonth(year: number, month: number): number {
+    public static getNumberofDaysInCurrMonth(year: number, month: number): number {
         return new Date(year, month + 1, 0).getDate();
     }
 
-    public static  getNumberofDaysInPrevMonth(year: number, month: number): number {
+    public static getNumberofDaysInPrevMonth(year: number, month: number): number {
         return new Date(year, month, 0).getDate();
     }
 
@@ -92,7 +103,7 @@ export class Utils {
         return currentDate;
     }
 
-    public static PARSE_DATE_WITHOUT_TIMEZONE(dateString: string): Date | null{
+    public static PARSE_DATE_WITHOUT_TIMEZONE(dateString: string): Date | null {
         if (dateString === null) {
             return null;
         }
@@ -124,7 +135,7 @@ export class Utils {
         values = Array.from(values || []);
 
         values.forEach((value: any) => {
-            const date: Date | undefined= Utils.PARSE_DATE(value);
+            const date: Date | undefined = Utils.PARSE_DATE(value);
 
             if (startDate === undefined || (date !== undefined && date < startDate)) {
                 startDate = date;
@@ -141,7 +152,7 @@ export class Utils {
         return { startDate, endDate };
     }
 
-    public static PARSE_DATE(value: any): Date | undefined{
+    public static PARSE_DATE(value: any): Date | undefined {
         const typeOfValue: string = typeof value;
         let date: Date = value;
 
@@ -166,7 +177,7 @@ export class Utils {
         }
         const datePeriod: ITimelineDatePeriod[] = timelineData.currentGranularity.getDatePeriods();
         const startDate: Date | undefined = Utils.GET_START_SELECTION_DATE(timelineData);
-        const endDate: Date | undefined= Utils.GET_END_SELECTION_DATE(timelineData);
+        const endDate: Date | undefined = Utils.GET_END_SELECTION_DATE(timelineData);
 
         return datePeriod
             && datePeriod.length >= 1
