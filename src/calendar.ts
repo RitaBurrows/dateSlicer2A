@@ -20,6 +20,8 @@ import {
 import { Utils } from "./utils";
 import { filter } from "d3";
 
+type DateRange = "Today"| "Yesterday" | "This Week" | "Last Week" | "This Month" | "Last Month" | "This Year" | "Last Year" | "Custom"
+
 export class Calendar implements IVisual {
     private arrowDown: D3Selection<any, any, any, any>;
     private arrowUp: D3Selection<any, any, any, any>;
@@ -43,7 +45,7 @@ export class Calendar implements IVisual {
     //private defaultDatesApplied: boolean = false;
     private static DefaultTextXOffset: number = 5;
     private static DefaultTextYOffset: number = 20;
-    private endDate: Date = Utils.normaliseEndDate(new Date());
+    private endDate: Date = Utils.getNormalisedYearEnd(new Date);
     private endDateInput: HTMLInputElement;
     private endDateInputContainer: D3Selection<any, any, any, any>;
     private highlightEnd: Date | null = null;
@@ -51,10 +53,10 @@ export class Calendar implements IVisual {
     private host: IVisualHost;
     private jsonFilters: AdvancedFilter[]=[];
     private options: powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
-    private previousStartDate: Date = Utils.normaliseStartDate(new Date());
-    private previousEndDate: Date = Utils.normaliseEndDate(new Date());
-    private selectedDateRange: string = "Today";
-    private startDate: Date = Utils.normaliseStartDate(new Date(2025, 0, 1));
+    private previousStartDate: Date = Utils.getNormalisedYearStart(new Date());
+    private previousEndDate: Date = Utils.getNormalisedYearEnd(new Date());
+    private selectedDateRange: DateRange = "This Year";
+    private startDate: Date = Utils.getNormalisedYearStart(new Date);
     private startDateInput: HTMLInputElement;
     private startDateInputContainer: D3Selection<any, any, any, any>;
     private rootSelection: D3Selection<any, any, any, any>;
@@ -118,7 +120,7 @@ export class Calendar implements IVisual {
         console.log("initialiseDateInput -minDate: ", minDate, "maxDate", maxDate);
     }
 
-    private applyDateRange(range: string) {
+    private applyDateRange(range: DateRange) {
         const today: Date = Utils.normaliseStartDate(new Date());
         this.previousStartDate = new Date(this.startDate);
         this.previousEndDate = new Date(this.endDate);
@@ -205,6 +207,8 @@ export class Calendar implements IVisual {
                 break;
             default:
                 console.log("Unknown date range selected");
+                const _exhaustiveCheck: never = range
+                return _exhaustiveCheck;
         }
 
         this.startDateInput.value = Utils.formatDate(this.startDate);
@@ -219,7 +223,7 @@ export class Calendar implements IVisual {
         if(!this.previousStartDate || !this.previousEndDate) return false
         const hasChanged = (this.previousStartDate.getTime() !== this.startDate.getTime())
             || (this.previousEndDate.getTime() !== this.endDate.getTime());
-        console.log("datePeriodChanged - hasChanged", hasChanged, "this.previousStartDate", this.previousStartDate, "this.startDate", this.startDate, "this.previousEndDate", this.previousEndDate, "this.endDate", this.endDate);
+        console.log("datePeriodChanged - hasChanged", hasChanged, "this.previousStartDate", this.previousStartDate.getTime(), "this.startDate", this.startDate.getTime(), "this.previousEndDate", this.previousEndDate.getTime(), "this.endDate", this.endDate.getTime());
         return hasChanged;
     }
 
@@ -391,7 +395,7 @@ export class Calendar implements IVisual {
         let startX = props.startXpoint + props.leftMargin;
         let startY = props.startYpoint + props.topMargin;
         let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
+        console.log("startX + props.daysInWeek * props.cellWidth - 100",startX + props.daysInWeek * props.cellWidth - 100)
         this.calendarSvg
             .attr("width", width)
             .attr("height", height);
@@ -410,9 +414,11 @@ export class Calendar implements IVisual {
 
         //let monthLabelWidth = (props.daysInWeek * props.cellWidth);
         this.arrowUp
+            .append("text")
+            .classed("arrowUp", true)
+            .text("▲")
             .attr("x", startX + props.daysInWeek * props.cellWidth - 100)
             .attr("y", startY - props.weekdayLabelHeight - 50)
-            .text("▲")
 
         this.calendarSvg
             .append("text")
@@ -601,7 +607,7 @@ export class Calendar implements IVisual {
         this.dateRangeDropDown
             .on("change", (event: any) => {
                 const selectElement = event.target as HTMLSelectElement;
-                const value = selectElement.value;
+                const value = selectElement.value as DateRange;
                 this.selectedDateRange = value;
                 //this.determineStartEndDates(value);
                 this.customDateContainer
@@ -689,8 +695,6 @@ export class Calendar implements IVisual {
             .classed('calendarSvg', true)
         
         this.arrowUp = this.calendarSvg
-            .append("text")
-            .classed("arrowUp", true)
             .on("click", () => {
                 this.currentMonth++;
                 if (this.currentMonth > 11) {
@@ -699,8 +703,7 @@ export class Calendar implements IVisual {
                 }
                 this.options && this.update(this.options); // redraw
             });
-
-            this.arrowUp.attr("fill", "red").attr("font-size", 50); 
+ 
         this.currentMonth = new Date().getMonth();
         this.currentYear = new Date().getFullYear();
         //this.calendarProperties = { ...Calendar.CalendarMargins } as ICalendarProperties; 
@@ -731,10 +734,10 @@ export class Calendar implements IVisual {
     }
 
     public update(options: VisualUpdateOptions) {
-d3.selectAll(".arrowUp").nodes() 
         this.options = options;
         this.dataView = options.dataViews && options.dataViews[0];
-        console.log("*******OPTIONS*******", this.options);
+        //console.log("this.calendarProperties", this.calendarProperties)
+        //console.log("*******OPTIONS*******", this.options);
         //console.log("update - this.dateSelected", this.dateSelected, "this.selectedDateRange", this.selectedDateRange);
         //this.calendarSvg.selectAll("*").remove();
         //console.log("this.startDate", this.startDate, "this.endDate", this.endDate);
@@ -774,7 +777,7 @@ d3.selectAll(".arrowUp").nodes()
 
         if (this.datePeriodChanged()) {
             console.log("Date period has changed", this.datePeriodChanged());
-            this.applyDateRange(this.selectedDateRange);
+            //this.applyDateRange(this.selectedDateRange);
             this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
         }
 
@@ -819,3 +822,23 @@ d3.selectAll(".arrowUp").nodes()
 
 
 }
+
+
+/* EXAMPLE
+
+*this.startDateInput.addEventListener("click", () => { 
+
+            //this.calendarInteractive = true; // enable calendar 
+
+            //this.showCalendarDropdown();     // function to draw calendar 
+
+        }); 
+
+        this.endDateInput.addEventListener("click", () => { 
+
+            //this.updateCalendar(options); 
+
+            //this.showCalendarDropdown();     // function to draw calendar 
+
+        });*/ 
+        

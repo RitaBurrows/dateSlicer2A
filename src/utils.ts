@@ -28,6 +28,14 @@ export class Utils {
         return `${day}/${month}/${year}`;
     }
 
+    public static getNormalisedYearStart(date: Date): Date {
+            return new Date(date.getFullYear(), 0, 1);
+    }
+
+    public static getNormalisedYearEnd(date: Date): Date {
+            return new Date(date.getFullYear(), 11, 31, 23, 59, 59, 999);
+    }
+    
     public static normaliseStartDate(date: Date): Date {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
