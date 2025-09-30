@@ -413,12 +413,20 @@ export class Calendar implements IVisual {
             .text(displayMonth(this.currentMonth) + " " + this.currentYear);
 
         //let monthLabelWidth = (props.daysInWeek * props.cellWidth);
-        this.arrowUp
+        this.calendarSvg
             .append("text")
-            .classed("arrowUp", true)
-            .text("▲")
+            .classed("arrowDown", true)
             .attr("x", startX + props.daysInWeek * props.cellWidth - 100)
-            .attr("y", startY - props.weekdayLabelHeight - 50)
+            .attr("y", startY - props.weekdayLabelHeight - 25)
+            .text("▲")//("↓")
+            .on("click", () => {
+                this.currentMonth--;
+                if (this.currentMonth < 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                }
+                this.update(options); // redraw
+            });
 
         this.calendarSvg
             .append("text")
@@ -678,7 +686,7 @@ export class Calendar implements IVisual {
         this.calendarContainer = this.rootSelection
             .append("div")
             .classed("calendarContainer", true)            
-            .style("display", "none"); // initially hidden
+            .style("display", "auto"); // initially hidden
             /*.on("click", (event: any) => {
                 // Click outside calendar to close
                 if (this.calendarInteractive && this.targetInput) {
@@ -694,7 +702,12 @@ export class Calendar implements IVisual {
             .append('svg')
             .classed('calendarSvg', true)
         
-        this.arrowUp = this.calendarSvg
+        /*this.arrowUp = this.calendarSvg
+            .append("text")
+            .classed("arrowUp", true)
+            .text("▲")
+            .attr("x", 0)
+            .attr("y", 0)
             .on("click", () => {
                 this.currentMonth++;
                 if (this.currentMonth > 11) {
@@ -702,7 +715,7 @@ export class Calendar implements IVisual {
                     this.currentYear++;
                 }
                 this.options && this.update(this.options); // redraw
-            });
+            });*/
  
         this.currentMonth = new Date().getMonth();
         this.currentYear = new Date().getFullYear();
