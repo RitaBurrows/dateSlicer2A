@@ -1,8 +1,8 @@
-import "./../style/visual.less";
 import powerbiVisualsApi from "powerbi-visuals-api";
 import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbiVisualsApi.extensibility.visual.IVisual;
+import "./../style/visual.less";
 export declare class Calendar implements IVisual {
     private arrowDown;
     private arrowUp;
