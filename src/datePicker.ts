@@ -24,7 +24,7 @@ import {
     WeekDay
 } from "./calendarTypes"
 
-export class Calendar implements IVisual {
+export class DatePicker implements IVisual {
     private arrowDown: D3Selection<any, any, any, any>;
     private arrowUp: D3Selection<any, any, any, any>;
     private calendarContainer: D3Selection<any, any, any, any>;
@@ -456,7 +456,7 @@ export class Calendar implements IVisual {
                     .style("opacity", value === "Custom" ? 1 : 0.5)
 
                 this.applyDateRange(value);
-                (value !== "Custom") && this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
+                (value !== "Custom") && this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
             });
 
         this.customDateContainer = this.rootSelection
@@ -563,28 +563,28 @@ export class Calendar implements IVisual {
         this.previousStartDate = new Date(this.startDate);
         this.previousEndDate = new Date(this.endDate);
         this.startDate = Utils.getNormalisedYearStart(new Date);
-        //this.calendarProperties = { ...Calendar.CalendarMargins } as ICalendarProperties; 
+        //this.calendarProperties = { ...DatePicker.CalendarMargins } as ICalendarProperties; 
         this.calendarProperties = {
-            topMargin: Calendar.CalendarMargins.TopMargin,
-            bottomMargin: Calendar.CalendarMargins.BottomMargin,
-            leftMargin: Calendar.CalendarMargins.LeftMargin,
-            rightMargin: Calendar.CalendarMargins.RightMargin,
+            topMargin: DatePicker.CalendarMargins.TopMargin,
+            bottomMargin: DatePicker.CalendarMargins.BottomMargin,
+            leftMargin: DatePicker.CalendarMargins.LeftMargin,
+            rightMargin: DatePicker.CalendarMargins.RightMargin,
             // cell dimensions (each day box) 
-            cellWidth: Calendar.CalendarMargins.CellWidth,    // width of a single day cell 
-            cellHeight: Calendar.CalendarMargins.CellHeight,  // height of a single day cell 
-            cellPadding: Calendar.CalendarMargins.CellPadding, // inner spacing 
+            cellWidth: DatePicker.CalendarMargins.CellWidth,    // width of a single day cell 
+            cellHeight: DatePicker.CalendarMargins.CellHeight,  // height of a single day cell 
+            cellPadding: DatePicker.CalendarMargins.CellPadding, // inner spacing 
             // grid layout (rows = weeks, cols = days) 
             daysInWeek: 7,
             weeksInMonth: 6, // typical calendar grid 
-            startXpoint: Calendar.CalendarMargins.StartXpoint,
-            startYpoint: Calendar.CalendarMargins.StartYpoint,
+            startXpoint: DatePicker.CalendarMargins.StartXpoint,
+            startYpoint: DatePicker.CalendarMargins.StartYpoint,
             // header/legend 
-            headerHeight: Calendar.CalendarMargins.HeaderHeight, // month name or day labels 
-            weekdayLabelHeight: Calendar.CalendarMargins.WeekdayLabelHeight,
+            headerHeight: DatePicker.CalendarMargins.HeaderHeight, // month name or day labels 
+            weekdayLabelHeight: DatePicker.CalendarMargins.WeekdayLabelHeight,
 
             // text positioning 
-            textXOffset: Calendar.DefaultTextXOffset,
-            textYOffset: Calendar.DefaultTextYOffset,
+            textXOffset: DatePicker.DefaultTextXOffset,
+            textYOffset: DatePicker.DefaultTextYOffset,
         };
     }
 
@@ -597,8 +597,8 @@ export class Calendar implements IVisual {
         }
         const dataView: DataView = options.dataViews[0];
 
-        Calendar.dateField = dataView.metadata.columns.find(col => col.roles && col.roles["Time"]);
-        if (!Calendar.dateField) {
+        DatePicker.dateField = dataView.metadata.columns.find(col => col.roles && col.roles["Time"]);
+        if (!DatePicker.dateField) {
             console.log("No dateField found");
             return;
         }
@@ -608,8 +608,8 @@ export class Calendar implements IVisual {
             return;
         }
 
-        Calendar.categories = dataView.categorical.categories as powerbiVisualsApi.DataViewCategoryColumn[];
-        if (!Calendar.categories || Calendar.categories.length === 0) {
+        DatePicker.categories = dataView.categorical.categories as powerbiVisualsApi.DataViewCategoryColumn[];
+        if (!DatePicker.categories || DatePicker.categories.length === 0) {
             console.log("No categories found");
             return;
         }
@@ -617,11 +617,11 @@ export class Calendar implements IVisual {
         if (!this.dateSelected) {
             !this.dateSelected && console.log("No date selected:\nthis.dateSelected, this.selectedDateRange -", this.dateSelected, this.selectedDateRange)
             this.applyDateRange(this.selectedDateRange);
-            this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
+            this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
         }
 
         if (!this.datesFiltered && this.datePeriodChanged()) {
-            this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
+            this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
         }
         this.datesFiltered = false;
 

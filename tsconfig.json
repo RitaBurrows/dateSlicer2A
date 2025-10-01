@@ -15,6 +15,6 @@
         ]
     },
     "files": [
-        "src/calendar.ts"
+        "src/datePicker.ts"
     ]
 }
