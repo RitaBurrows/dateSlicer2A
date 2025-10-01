@@ -68,17 +68,29 @@ p em {
   width: 100%;
   max-width: 400px;
 }
+.calendarRoot .calendarContainer .calendarSvg {
+  fill: #255A91;
+}
 .calendarRoot .calendarContainer .calendarSvg .arrowUp,
 .calendarRoot .calendarContainer .calendarSvg .arrowDown {
   font-size: 12px;
-  fill: #255A91;
   cursor: pointer;
   display: auto;
 }
 .calendarRoot .calendarContainer .calendarSvg .monthLabel {
   text-anchor: end;
   font-size: 18px;
-  fill: #255A91;
+}
+.calendarRoot .calendarContainer .calendarSvg .weekdayLabel {
+  font-size: 14px;
+}
+.calendarRoot .calendarContainer .calendarSvg .dayGroup .dayCell {
+  fill: #ffffff;
+  transition: fill 0.3s, opacity 0.3s;
+}
+.calendarRoot .calendarContainer .calendarSvg .dayGroup .dayCell:hover {
+  fill: orange;
+  opacity: 0.8;
 }
 .calendarRoot .containerLabel {
   display: block;

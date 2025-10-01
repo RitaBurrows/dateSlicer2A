@@ -109,9 +109,10 @@ body {
 
             .calendarSvg {
 
+                fill: #255A91;
+
                 .arrowUp, .arrowDown {
                     font-size: 12px;
-                    fill: #255A91;
                     cursor: pointer;
                     display: auto;
                 }
@@ -119,8 +120,23 @@ body {
                 .monthLabel {                    
                     text-anchor: end;
                     font-size: 18px;
-                    fill: #255A91;
                 }
+
+                .weekdayLabel {
+                    font-size: 14px;
+
+                }
+
+                .dayGroup .dayCell {
+                    fill: #ffffff;
+                    transition: fill 0.3s, opacity 0.3s;
+                }
+
+                .dayGroup .dayCell:hover {
+                    fill: orange;
+                    opacity: 0.8;
+                }
+
             }
     }
     

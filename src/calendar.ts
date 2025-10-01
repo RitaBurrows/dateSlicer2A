@@ -20,7 +20,9 @@ import {
 import { Utils } from "./utils";
 import { filter } from "d3";
 
-type DateRange = "Today"| "Yesterday" | "This Week" | "Last Week" | "This Month" | "Last Month" | "This Year" | "Last Year" | "Custom"
+type DateRange = "Today" | "Yesterday" | "This Week" | "Last Week" | "This Month" | "Last Month" | "This Year" | "Last Year" | "Custom"
+type WeekDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+type MonthNames = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December"
 
 export class Calendar implements IVisual {
     private arrowDown: D3Selection<any, any, any, any>;
@@ -32,31 +34,33 @@ export class Calendar implements IVisual {
     private calendarInteractive: boolean = false;
     private calendarProperties: ICalendarProperties
     private calendarSvg: Selection<SVGElement>;
+    private static categories: powerbiVisualsApi.DataViewCategoryColumn[] | undefined
     private currentMonth: number;
     private currentYear: number;
-    private dataView: powerbiVisualsApi.DataView;
-    private static categories: powerbiVisualsApi.DataViewCategoryColumn[] | undefined
     private customDateContainer: D3Selection<any, any, any, any>;
+    private dataView: powerbiVisualsApi.DataView;
     private static dateField: powerbiVisualsApi.DataViewMetadataColumn | undefined;
     private dateInputContainer: D3Selection<any, any, any, any>;
     private dateRangeContainer: D3Selection<any, any, any, any>;
     private dateRangeDropDown: D3Selection<any, any, any, any>;
     private dateSelected: boolean = false;
+    private datesFiltered: boolean = true;
     //private defaultDatesApplied: boolean = false;
     private static DefaultTextXOffset: number = 5;
     private static DefaultTextYOffset: number = 20;
-    private endDate: Date = Utils.getNormalisedYearEnd(new Date);
+    private endDate: Date;
     private endDateInput: HTMLInputElement;
     private endDateInputContainer: D3Selection<any, any, any, any>;
-    private highlightEnd: Date | null = null;
-    private highlightStart: Date | null = null;
+    //private highlightEnd: Date | null = null;
+    //private highlightStart: Date | null = null;
     private host: IVisualHost;
-    private jsonFilters: AdvancedFilter[]=[];
+    private jsonFilters: AdvancedFilter[] = [];
+    private monthLabel: D3Selection<any, any, any, any>;
     private options: powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
-    private previousStartDate: Date = Utils.getNormalisedYearStart(new Date());
-    private previousEndDate: Date = Utils.getNormalisedYearEnd(new Date());
+    private previousStartDate: Date;
+    private previousEndDate: Date;
     private selectedDateRange: DateRange = "This Year";
-    private startDate: Date = Utils.getNormalisedYearStart(new Date);
+    private startDate: Date;
     private startDateInput: HTMLInputElement;
     private startDateInputContainer: D3Selection<any, any, any, any>;
     private rootSelection: D3Selection<any, any, any, any>;
@@ -75,12 +79,12 @@ export class Calendar implements IVisual {
         HeaderHeight: 30,
         WeekdayLabelHeight: 20
     }
-    
-    
+
+
     //Power BI sends auto-date hierarchy range 01/01/2020 to 31/12/2030
     //This function equires turning off 'Auto Date/TIme' in Power BI Options
     private intialiseStartAndEndDates(categories: powerbiVisualsApi.DataViewCategoryColumn[]): void {
-         console.log("intialiseStartAndEndDates (before running code) - this.startDate, this.endDate should be undefined", this.startDate, this.endDate)
+        console.log("intialiseStartAndEndDates (before running code) - this.startDate, this.endDate should be undefined", this.startDate, this.endDate)
         // Find the column index with the 'Time' role
         const dateColIndex = categories.findIndex(category => category.source.roles && category.source.roles["Time"]);
         //console.log("dateColIndex", dateColIndex);
@@ -122,16 +126,19 @@ export class Calendar implements IVisual {
 
     private applyDateRange(range: DateRange) {
         const today: Date = Utils.normaliseStartDate(new Date());
-        this.previousStartDate = new Date(this.startDate);
-        this.previousEndDate = new Date(this.endDate);
         this.dateSelected = true;
-        console.log("applyDateRange - range, this.dateSelected, this.selectedDateRange: ", range, this.dateSelected, this.selectedDateRange);
-        this.selectedDateRange = range;
+        console.log("applyDateRange:\nthis.selectedDateRange -", this.selectedDateRange);
 
         if (range === "Custom") {
             // Show calendar so user can pick a date 
             this.calendarInputEnabled = true;
+            //this.updateCalendarVisibility(true)
         } else {
+
+            this.previousStartDate = new Date(this.startDate);
+            this.previousEndDate = new Date(this.endDate);
+            //this.highlightStart = null;
+            //this.highlightEnd = null;
             this.calendarInputEnabled = false;
             this.updateCalendarVisibility(false); // hide calendar 
         }
@@ -213,17 +220,16 @@ export class Calendar implements IVisual {
 
         this.startDateInput.value = Utils.formatDate(this.startDate);
         this.endDateInput.value = Utils.formatDate(this.endDate);
-        this.highlightStart = new Date(this.startDate);
-        this.highlightEnd = new Date(this.endDate);        
-        console.log("applyDateRange - this.startDate", this.startDate, "this.endDate", this.endDate, "tthis.highlightStart", this.highlightStart, "this.highlightEnd", this.highlightEnd);
+        //this.highlightStart = new Date(this.startDate);
+        //this.highlightEnd = new Date(this.endDate);
+        //console.log("applyDateRange - this.startDate", this.startDate, "this.endDate", this.endDate, "tthis.highlightStart", this.highlightStart, "this.highlightEnd", this.highlightEnd);
     }
 
     private datePeriodChanged() {
-        console.log("datePeriodChanged - this.previousStartDate, this.previousEndDate", this.previousStartDate, this.previousEndDate)
-        if(!this.previousStartDate || !this.previousEndDate) return false
+        if (!this.previousStartDate || !this.previousEndDate) return false
         const hasChanged = (this.previousStartDate.getTime() !== this.startDate.getTime())
             || (this.previousEndDate.getTime() !== this.endDate.getTime());
-        console.log("datePeriodChanged - hasChanged", hasChanged, "this.previousStartDate", this.previousStartDate.getTime(), "this.startDate", this.startDate.getTime(), "this.previousEndDate", this.previousEndDate.getTime(), "this.endDate", this.endDate.getTime());
+        if (hasChanged) { console.log("datePeriodChanged:\nhasChanged -", hasChanged, "\nthis.previousStartDate -", this.previousStartDate.getTime(), "this.startDate -", this.startDate.getTime(), "\nthis.previousEndDate -", this.previousEndDate.getTime(), "this.endDate -", this.endDate.getTime()); }
         return hasChanged;
     }
 
@@ -237,8 +243,9 @@ export class Calendar implements IVisual {
     }
 
     private applyFilter(datefield: any, startDate: Date, endDate: Date) {
-        console.log("applyFilter - startDate: ", startDate, ", endDate: ", endDate);
+        console.log("applyFilter:\nstartDate -", startDate, "\nendDate -", endDate);
         //console.log("Calendar.dateField", datefield);
+        this.datesFiltered = true;
         if (datefield) {
             //console.log("applyFilter - datefield.displayName", datefield.displayName, "datefield.queryName", datefield.queryName);
             // Create filter
@@ -269,124 +276,19 @@ export class Calendar implements IVisual {
         }
     }
 
-    private drawCalendar2(): void { 
+    private displayMonth(monthIndex: number): string {
+        const monthNames: MonthNames[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        return monthNames[monthIndex];
+    };
 
-        if (!this.calendarSvg) return; 
-        const props = this.calendarProperties; 
-        const startX = props.startXpoint + props.leftMargin; 
-        const startY = props.startYpoint + props.topMargin; 
-        // Clear any existing calendar elements 
-        this.calendarSvg.selectAll("*").remove(); 
+    private drawCalendar(options: VisualUpdateOptions): void {
 
-        // Set SVG width/height 
-        this.calendarSvg 
-            .attr("width", 7 * props.cellWidth + props.leftMargin + props.rightMargin) 
-            .attr("height", 7 * props.cellHeight + props.topMargin + props.bottomMargin); 
-
-            // Month label 
-
-        const monthNames = [ 
-            "January","February","March","April","May","June", "July","August","September","October","November","December" 
-        ]; 
-        this.calendarSvg.append("text") 
-            .attr("x", startX + (props.daysInWeek * props.cellWidth)/2) 
-            .attr("y", startY - props.weekdayLabelHeight) 
-            .attr("text-anchor", "middle") 
-            .attr("font-size", "18px") 
-            .attr("fill", "#255A91") 
-            .text(`${monthNames[this.currentMonth]} ${this.currentYear}`); 
-
-        // Weekday labels 
-        const weekdays = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]; 
-        this.calendarSvg.selectAll(".weekdayLabel") 
-            .data(weekdays) 
-            .enter() 
-            .append("text") 
-            .classed("weekdayLabel", true) 
-            .attr("x", (d, i) => startX + i * props.cellWidth + props.textXOffset) 
-            .attr("y", startY - props.weekdayLabelHeight / 2) 
-            .attr("font-size", "14px") 
-            .attr("fill", "#255A91") 
-            .text(d => d); 
-
-        // Calculate day cells 
-
-        const daysInMonth = Utils.getNumberofDaysInCurrMonth(this.currentYear, this.currentMonth); 
-        let firstDayOfMonth = Utils.getFirstDayOfMonth(this.currentYear, this.currentMonth); 
-        firstDayOfMonth = (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1); // make Monday first 
-        let daysArray: { day: number, inMonth: boolean, date: Date }[] = []; 
-
-        // Previous month trailing days 
-        const prevMonthDays = Utils.getNumberofDaysInPrevMonth(this.currentYear, this.currentMonth); 
-        for (let i = 0; i < firstDayOfMonth; i++) { 
-            const date = new Date(this.currentYear, this.currentMonth - 1, prevMonthDays - firstDayOfMonth + i + 1); 
-            daysArray.push({ day: date.getDate(), inMonth: false, date }); 
-        } 
-
-        // Current month 
-        for (let d = 1; d <= daysInMonth; d++) { 
-            const date = new Date(this.currentYear, this.currentMonth, d); 
-            daysArray.push({ day: d, inMonth: true, date }); 
-        } 
-
-
-        // Next month leading days until 42 cells 
-        let nextDay = 1; 
-        while (daysArray.length < 42) { 
-            const date = new Date(this.currentYear, this.currentMonth + 1, nextDay++); 
-            daysArray.push({ day: date.getDate(), inMonth: false, date }); 
-        } 
-    
-        // Render day cells 
-        const dayGroups = this.calendarSvg.selectAll(".dayGroup") 
-            .data(daysArray) 
-            .enter() 
-            .append("g") 
-            .classed("dayGroup", true) 
-            .attr("transform", (d, i) => { 
-                const x = startX + (i % props.daysInWeek) * props.cellWidth; 
-                const y = startY + Math.floor(i / props.daysInWeek) * props.cellHeight; 
-                return `translate(${x}, ${y})`; 
-            }); 
-    
-        // Highlight selected range 
-        const inHighlightRange = (date: Date) => { 
-            if (!this.highlightStart || !this.highlightEnd) return false; 
-            return date >= this.highlightStart && date <= this.highlightEnd; 
-        }; 
-    
-        dayGroups.append("rect") 
-            .attr("width", props.cellWidth - props.cellPadding) 
-            .attr("height", props.cellHeight - props.cellPadding) 
-            .attr("fill", d => inHighlightRange(d.date) ? "#B3D1F0" : "#ffffff") 
-            .attr("stroke", "#ccc"); 
-    
-        // Day number text 
-        dayGroups.append("text") 
-            .attr("x", props.textXOffset) 
-            .attr("y", props.textYOffset) 
-            .attr("font-size", "12px") 
-            .attr("fill", d => d.inMonth ? "#255A91" : "#999") 
-            .text(d => d.day); 
-    
-
-        // Click to select date 
-        dayGroups.on("click", (event, d) => { 
-            if (!this.calendarInteractive || !this.targetInput) return; 
-            this.targetInput.value = Utils.formatDate(d.date); 
-            this.highlightStart = new Date(d.date); 
-            this.calendarInteractive = false; 
-            this.updateCalendarVisibility(false); 
-            this.targetInput = null; 
-        }); 
-    } 
-
-    private drawCalendar(options: VisualUpdateOptions): void{
-        this.calendarSvg.selectAll("*").remove();
+        if (!this.calendarInteractive) return;
         if (!this.calendarSvg || !options) {
-            console.log("Either calender svg or options is not available", this.calendarSvg,"options", options);
+            console.log("Either calender svg or options is not available", this.calendarSvg, "options", options);
             return;
         }
+
         let today = new Date();
         today = Utils.normaliseStartDate(today);
         let width: number = options.viewport.width;
@@ -394,67 +296,29 @@ export class Calendar implements IVisual {
         let props = this.calendarProperties;
         let startX = props.startXpoint + props.leftMargin;
         let startY = props.startYpoint + props.topMargin;
-        let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        console.log("startX + props.daysInWeek * props.cellWidth - 100",startX + props.daysInWeek * props.cellWidth - 100)
         this.calendarSvg
             .attr("width", width)
             .attr("height", height);
 
-        const displayMonth = (monthIndex: number): string => {
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            return monthNames[monthIndex];
-        };
-        this.calendarSvg
-            .append("text")
-            .classed("monthLabel", true)
+        this.monthLabel
             .attr("x", startX + 30)
             .attr("y", startY - props.weekdayLabelHeight - 20)
             .attr("dx", (props.daysInWeek * props.cellWidth) / 2 - props.cellWidth / 2)
-            .text(displayMonth(this.currentMonth) + " " + this.currentYear);
+            .text(this.displayMonth(this.currentMonth) + " " + this.currentYear);
 
         //let monthLabelWidth = (props.daysInWeek * props.cellWidth);
-        this.calendarSvg
-            .append("text")
-            .classed("arrowDown", true)
-            .attr("x", startX + props.daysInWeek * props.cellWidth - 100)
-            .attr("y", startY - props.weekdayLabelHeight - 25)
-            .text("▲")//("↓")
-            .on("click", () => {
-                this.currentMonth--;
-                if (this.currentMonth < 0) {
-                    this.currentMonth = 11;
-                    this.currentYear--;
-                }
-                this.update(options); // redraw
-            });
-
-        this.calendarSvg
-            .append("text")
-            .classed("arrowDown", true)
-            .attr("x", startX + props.daysInWeek * props.cellWidth - 75)
-            .attr("y", startY - props.weekdayLabelHeight - 25)
-            .text("▼")//("↓")
-            .on("click", () => {
-                this.currentMonth--;
-                if (this.currentMonth < 0) {
-                    this.currentMonth = 11;
-                    this.currentYear--;
-                }
-                this.update(options); // redraw
-            });
-
 
         this.calendarSvg.selectAll(".weekdayLabel")
-            .data(weekdays)
-            .enter()
-            .append("text")
-            .classed("weekdayLabel", true)
             .attr("x", (d, i) => startX + i * props.cellWidth + props.textXOffset)
-            .attr("y", startY - props.weekdayLabelHeight)
-            .attr("font-size", "14px")
-            .attr("fill", "#255A91")
-            .text(d => d);
+            .attr("y", startY - props.weekdayLabelHeight);
 
+        this.arrowUp
+            .attr("x", startX + props.daysInWeek * props.cellWidth - 100) //200
+            .attr("y", startY - props.weekdayLabelHeight - 25); //15
+
+        this.arrowDown
+            .attr("x", startX + props.daysInWeek * props.cellWidth - 75) //175
+            .attr("y", startY - props.weekdayLabelHeight - 25) //15
 
         let totalDays = props.daysInWeek * props.weeksInMonth; // 42 slots
         const daysInMonth = Utils.getNumberofDaysInCurrMonth(this.currentYear, this.currentMonth);
@@ -488,6 +352,8 @@ export class Calendar implements IVisual {
             daysArray.push({ day: date.getDate(), inMonth: false, date });
         }
 
+        this.calendarSvg.selectAll(".dayGroup").remove()
+        
         const dayGroups = this.calendarSvg.selectAll(".dayGroup")
             .data(daysArray)
             .enter()
@@ -500,27 +366,27 @@ export class Calendar implements IVisual {
             });
 
         // Function to check if a date is within the highlight range
-        const inHighlightRange = (cellDate: Date): boolean => {
+        /*const inHighlightRange = (cellDate: Date): boolean => {
             if (!this.highlightStart || !this.highlightEnd) return false;
             return cellDate >= this.highlightStart && cellDate <= this.highlightEnd;
-        };
+        };*/
         // Background rect
         dayGroups.append("rect")
             .classed("dayCell", true)
             .attr("width", props.cellWidth - props.cellPadding)
             .attr("height", props.cellHeight - props.cellPadding)
-            .style("fill", d => {
+            /*.style("fill", "#ffffff"d => {
                 if (inHighlightRange(d.date)) {
                     return "#B3D1F0"; // highlight color
                 }
                 return "#ffffff"; // normal
-            });
+        });*/
 
         // Circle for today
         dayGroups.filter(d =>
             d.inMonth &&
-            this.currentYear === today.getFullYear() &&
-            this.currentMonth === today.getMonth() &&
+            today.getFullYear() === this.currentYear &&
+            today.getMonth() === this.currentMonth  &&
             d.day === today.getDate()
         ).append("circle")
             .attr("cx", (props.cellWidth - props.cellPadding) / 2)
@@ -550,35 +416,47 @@ export class Calendar implements IVisual {
             .text(d => d.day);
 
         dayGroups.on("click", (event, d) => {
-            if (!this.calendarInteractive) return;
-            this.targetInput.value = Utils.formatDate(d.date);
-            this.calendarInteractive = false;  // hide calendar after selection
-            this.highlightStart = new Date(d.date);
-            //this.startDateInput.value = event.target.id === "startInput" ? Utils.formatDate(d.date) : this.startDateInput.value;
-            //this.endDateInput.value = event.target.id === "endInput" ? Utils.formatDate(d.date) : this.endDateInput.value;
-            this.updateCalendarVisibility(false);
+            //console.log(`********* this.targetInput.id - this.highlightStart, d, event`, this.targetInput.id, this.highlightStart, d, event)
+            this.previousStartDate = new Date(this.startDate);
+            this.previousEndDate = new Date(this.endDate);
+            if (this.targetInput.id === "startInput") {
+                this.startDateInput.value = Utils.formatDate(d.date);
+                this.startDate = Utils.normaliseStartDate(d.date);
+                //this.highlightStart = null; //new Date(this.startDate);
+                //this.highlightEnd = null;
+            }
+
+            if (this.targetInput.id === "endInput") {
+                this.endDateInput.value = Utils.formatDate(d.date);
+                this.endDate = Utils.normaliseEndDate(d.date)
+                //this.highlightStart = null; 
+                //this.highlightEnd = null; //new Date(this.startDate);
+            }
+            this.updateCalendarVisibility(false); // hide calendar after selection
             this.targetInput = null;
+            this.update(options);
         });
-        this.updateCalendarVisibility(this.calendarInteractive);
+        //this.updateCalendarVisibility(this.calendarInteractive);
     }
 
 
     //better 
-    private refreshCalendar() { 
-        if (!this.dataView) return; 
-        this.update({ 
-            type: powerbiVisualsApi.VisualUpdateType.Data | powerbiVisualsApi.VisualUpdateType.Resize, 
-            viewport: { 
-                width: this.calendarSvg.node()?.clientWidth || 500, 
-                height: this.calendarSvg.node()?.clientHeight || 400 
-            }, 
-            viewMode: undefined, 
+    private refreshCalendar() {
+        if (!this.dataView) return;
+        this.update({
+            type: powerbiVisualsApi.VisualUpdateType.Data | powerbiVisualsApi.VisualUpdateType.Resize,
+            viewport: {
+                width: this.calendarSvg.node()?.clientWidth || 500,
+                height: this.calendarSvg.node()?.clientHeight || 400
+            },
+            viewMode: undefined,
             dataViews: [this.dataView], // pass the actual data 
-            jsonFilters: this.jsonFilters 
-        }); 
-    } 
+            jsonFilters: this.jsonFilters
+        });
+    }
 
     private updateCalendarVisibility(isVisible: boolean) {
+        console.log("updateCalendarVisibility:\nisVisible", isVisible)
         this.calendarInteractive = isVisible;
         this.calendarContainer.style("display", this.calendarInteractive ? "block" : "none");
     }
@@ -609,7 +487,7 @@ export class Calendar implements IVisual {
             .append("option")
             .attr("value", d => d)
             .text(d => d)
-            .property("selected", d => d === this.selectedDateRange);
+            .property("selected", d => this.selectedDateRange && d === this.selectedDateRange);
         //this.dateRangeDropDown.selectAll("*").remove();
         //.attr("id", "dateRangeDropdown")                  
         this.dateRangeDropDown
@@ -621,8 +499,9 @@ export class Calendar implements IVisual {
                 this.customDateContainer
                     .style("pointer-events", value === "Custom" ? "auto" : "none")
                     .style("opacity", value === "Custom" ? 1 : 0.5)
+
                 this.applyDateRange(value);
-                this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
+                (value !== "Custom") && this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
             });
         this.customDateContainer = this.rootSelection
             .append("div")
@@ -652,9 +531,9 @@ export class Calendar implements IVisual {
             .on("click", () => {
                 if (this.calendarInputEnabled === true) {
                     this.targetInput = this.startDateInput;
-                    this.highlightStart = new Date(this.targetInput.value);
+                    //console.log(`constructor - this.calendarIconStartDate -this.targetInput.id`, this.targetInput.id);
                     this.updateCalendarVisibility(true); // show calendar  
-                        if (this.options) this.drawCalendar(this.options);
+                    if (this.options) this.drawCalendar(this.options);
                 }
                 //console.log("calendarIconStartDate", this.calendarInputEnabled, this.targetInput.value, this.calendarInteractive);
             });
@@ -676,49 +555,69 @@ export class Calendar implements IVisual {
             .on("click", () => {
                 if (this.calendarInputEnabled === true) {
                     this.targetInput = this.endDateInput;
-                    this.highlightEnd = new Date(this.targetInput.value);
+                    //this.highlightEnd = new Date(this.targetInput.value);
                     this.updateCalendarVisibility(true); // show calendar 
                     if (this.options) this.drawCalendar(this.options);
                 }
                 //console.log("calendarIconStartDate", this.calendarInputEnabled, this.targetInput.value, this.calendarInteractive);
-                });
+            });
 
         this.calendarContainer = this.rootSelection
             .append("div")
-            .classed("calendarContainer", true)            
-            .style("display", "auto"); // initially hidden
-            /*.on("click", (event: any) => {
-                // Click outside calendar to close
-                if (this.calendarInteractive && this.targetInput) {
-                    const isClickInside = (event.target === this.targetInput) || (event.target === this.calendarIconStartDate.node()) || (event.target === this.calendarIconEndDate.node());
-                    if (!isClickInside) {
-                        this.calendarInteractive = false;
-                        this.updateCalendarVisibility(false);
-                        this.targetInput = null;
-                    }
-                }
-            });*/
+            .classed("calendarContainer", true)
+        //.style("display", "none"); // initially hidden
         this.calendarSvg = this.calendarContainer
             .append('svg')
             .classed('calendarSvg', true)
-        
-        /*this.arrowUp = this.calendarSvg
+
+        this.monthLabel = this.calendarSvg
+            .append("text")
+            .classed("monthLabel", true);
+
+        //let monthLabelWidth = (props.daysInWeek * props.cellWidth);
+
+        let weekdays: WeekDay[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ];
+        this.calendarSvg.selectAll(".weekdayLabel")
+            .data(weekdays)
+            .enter()
+            .append("text")
+            .classed("weekdayLabel", true)
+            .text(d => d);
+
+
+        this.arrowUp = this.calendarSvg
             .append("text")
             .classed("arrowUp", true)
-            .text("▲")
-            .attr("x", 0)
-            .attr("y", 0)
+            .text("▲")//("↓")
             .on("click", () => {
                 this.currentMonth++;
                 if (this.currentMonth > 11) {
                     this.currentMonth = 0;
                     this.currentYear++;
                 }
-                this.options && this.update(this.options); // redraw
-            });*/
- 
+                this.drawCalendar(this.options); // redraw
+            });
+
+        this.arrowDown = this.calendarSvg
+            .append("text")
+            .classed("arrowDown", true)
+            .text("▼")//("↓")
+            .on("click", () => {
+                this.currentMonth--;
+                if (this.currentMonth < 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                }
+                this.drawCalendar(this.options); // redraw
+            });
+
         this.currentMonth = new Date().getMonth();
         this.currentYear = new Date().getFullYear();
+        this.endDate = Utils.getNormalisedYearEnd(new Date);
+        this.previousStartDate = new Date(this.startDate);
+        this.previousEndDate = new Date(this.endDate);
+        //this.selectedDateRange = "This Year";
+        this.startDate = Utils.getNormalisedYearStart(new Date);
         //this.calendarProperties = { ...Calendar.CalendarMargins } as ICalendarProperties; 
         this.calendarProperties = {
             topMargin: Calendar.CalendarMargins.TopMargin,
@@ -762,7 +661,7 @@ export class Calendar implements IVisual {
         const dataView: DataView = options.dataViews[0];
         //console.log("dataView", dataView);
 
-        
+
 
         Calendar.dateField = dataView.metadata.columns.find(col => col.roles && col.roles["Time"]);
         if (!Calendar.dateField) {
@@ -776,31 +675,32 @@ export class Calendar implements IVisual {
         }
 
         Calendar.categories = dataView.categorical.categories as powerbiVisualsApi.DataViewCategoryColumn[];
-        if (! Calendar.categories ||  Calendar.categories.length === 0) {
+        if (!Calendar.categories || Calendar.categories.length === 0) {
             console.log("No categories found");
             return;
         }
 
         if (!this.dateSelected) {
-            !this.dateSelected && console.log("No date selected", this.dateSelected, this.selectedDateRange)
+            !this.dateSelected && console.log("No date selected:\nthis.dateSelected, this.selectedDateRange -", this.dateSelected, this.selectedDateRange)
             //this.intialiseStartAndEndDates(Calendar.categories);
             this.applyDateRange(this.selectedDateRange);
             this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
         }
 
-        if (this.datePeriodChanged()) {
-            console.log("Date period has changed", this.datePeriodChanged());
+        if (!this.datesFiltered && this.datePeriodChanged()) {
+            //console.log("Date period has changed", this.datePeriodChanged());
             //this.applyDateRange(this.selectedDateRange);
             this.applyFilter(Calendar.dateField, this.startDate, this.endDate);
         }
+        this.datesFiltered = false;
 
-             
-        
 
-        
 
-        
-        
+
+
+
+
+
         // If you want to redraw your calendar 
         //this.updateCalendar(options);
         //console.log("Visual update called", options);
@@ -818,7 +718,7 @@ export class Calendar implements IVisual {
                 }
                 //console.log("calendarIconStartDate", this.calendarInputEnabled, this.targetInput.value, this.calendarInteractive);
             });*/
-        
+
         /*this.calendarIconEndDate  
             .on("click", () => {
                 if (this.calendarInputEnabled === true) {
@@ -829,7 +729,7 @@ export class Calendar implements IVisual {
                 }
                 //console.log("calendarIconStartDate", this.calendarInputEnabled, this.targetInput.value, this.calendarInteractive);
                 });*/
-                
+
         console.log("End of update ************************************");
     }
 
@@ -853,5 +753,4 @@ export class Calendar implements IVisual {
 
             //this.showCalendarDropdown();     // function to draw calendar 
 
-        });*/ 
-        
+        });*/
