@@ -277,27 +277,65 @@ export class DatePicker implements IVisual {
         let props = this.calendarProperties;
         let startX = props.startXpoint + props.leftMargin;
         let startY = props.startYpoint + props.topMargin;
-        this.calendarSvg
+
+        this.calendarContainer = this.rootSelection
+            .append("div")
+            .classed("calendarContainer", true);
+
+        this.calendarSvg = this.calendarContainer
+            .append('svg')
+            .classed('calendarSvg', true)
             .attr("width", width)
             .attr("height", height);
 
-        this.monthLabel
+        this.monthLabel = this.calendarSvg
+            .append("text")
+            .classed("monthLabel", true)
             .attr("x", startX + 30)
             .attr("y", startY - props.weekdayLabelHeight - 20)
             .attr("dx", (props.daysInWeek * props.cellWidth) / 2 - props.cellWidth / 2)
             .text(this.displayMonth(this.currentMonth) + " " + this.currentYear);
+        
+        let weekdays: WeekDay[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ];
 
         this.calendarSvg.selectAll(".weekdayLabel")
+            .data(weekdays)
+            .enter()
+            .append("text")
+            .classed("weekdayLabel", true)
+            .text(d => d)
             .attr("x", (d, i) => startX + i * props.cellWidth + props.textXOffset)
             .attr("y", startY - props.weekdayLabelHeight);
 
-        this.arrowUp
+        this.arrowUp = this.calendarSvg
+            .append("text")
+            .classed("arrowUp", true)
+            .text("▲")//("↓")
             .attr("x", startX + props.daysInWeek * props.cellWidth - 100) //200
-            .attr("y", startY - props.weekdayLabelHeight - 25); //15
+            .attr("y", startY - props.weekdayLabelHeight - 25) //15
+            .on("click", () => {
+                this.currentMonth++;
+                if (this.currentMonth > 11) {
+                    this.currentMonth = 0;
+                    this.currentYear++;
+                }
+                this.drawCalendar(this.options); // redraw
+            });
 
-        this.arrowDown
+        this.arrowDown = this.calendarSvg
+            .append("text")
+            .classed("arrowDown", true)
+            .text("▼")//("↓")
             .attr("x", startX + props.daysInWeek * props.cellWidth - 75) //175
             .attr("y", startY - props.weekdayLabelHeight - 25) //15
+            .on("click", () => {
+                this.currentMonth--;
+                if (this.currentMonth < 0) {
+                    this.currentMonth = 11;
+                    this.currentYear--;
+                }
+                this.drawCalendar(this.options); // redraw
+            });
 
         let totalDays = props.daysInWeek * props.weeksInMonth; // 42 slots
         const daysInMonth = Utils.getNumberofDaysInCurrMonth(this.currentYear, this.currentMonth);
@@ -511,52 +549,7 @@ export class DatePicker implements IVisual {
                 }
             });
 
-        this.calendarContainer = this.rootSelection
-            .append("div")
-            .classed("calendarContainer", true)
-        this.calendarSvg = this.calendarContainer
-            .append('svg')
-            .classed('calendarSvg', true)
-
-        this.monthLabel = this.calendarSvg
-            .append("text")
-            .classed("monthLabel", true);
-
-        let weekdays: WeekDay[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ];
-
-        this.calendarSvg.selectAll(".weekdayLabel")
-            .data(weekdays)
-            .enter()
-            .append("text")
-            .classed("weekdayLabel", true)
-            .text(d => d);
-
-        this.arrowUp = this.calendarSvg
-            .append("text")
-            .classed("arrowUp", true)
-            .text("▲")//("↓")
-            .on("click", () => {
-                this.currentMonth++;
-                if (this.currentMonth > 11) {
-                    this.currentMonth = 0;
-                    this.currentYear++;
-                }
-                this.drawCalendar(this.options); // redraw
-            });
-
-        this.arrowDown = this.calendarSvg
-            .append("text")
-            .classed("arrowDown", true)
-            .text("▼")//("↓")
-            .on("click", () => {
-                this.currentMonth--;
-                if (this.currentMonth < 0) {
-                    this.currentMonth = 11;
-                    this.currentYear--;
-                }
-                this.drawCalendar(this.options); // redraw
-            });
-
+    
         this.currentMonth = new Date().getMonth();
         this.currentYear = new Date().getFullYear();
         this.endDate = Utils.getNormalisedYearEnd(new Date);
@@ -624,6 +617,7 @@ export class DatePicker implements IVisual {
             this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
         }
         this.datesFiltered = false;
+        
 
         console.log("End of update *********************************");
     }
