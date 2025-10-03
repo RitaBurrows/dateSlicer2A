@@ -48,7 +48,7 @@ export declare class DatePicker implements IVisual {
     getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction;
     private applyFilter;
     private displayMonth;
-    private drawCalendar;
+    private renderCalendar;
     private refreshCalendar;
     private updateCalendarVisibility;
     constructor(options: VisualConstructorOptions);
