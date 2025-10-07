@@ -14,8 +14,9 @@ import IVisualHost = powerbiVisualsApi.extensibility.visual.IVisualHost;
 
 import "./../style/visual.less";
 import {
-    ICalendarProperties,
-    ICalendarMargins
+    ICalendarDatePeriods,
+    ICalendarMargins,
+    ICalendarProperties
 } from "./interfaces"
 import { Utils } from "./utils";
 import { 
@@ -32,32 +33,34 @@ export class DatePicker implements IVisual {
     private calendarIconStartDate: D3Selection<any, any, any, any>;
     private calendarInputEnabled: boolean = false;
     private calendarInteractive: boolean = false;
-    private calendarProperties: ICalendarProperties
+    private calendarPeriods: ICalendarDatePeriods;
+    private calendarProperties: ICalendarProperties;
     private calendarSvg: Selection<SVGElement>;
     private static categories: powerbiVisualsApi.DataViewCategoryColumn[] | undefined
-    private currentMonth: number;
-    private currentYear: number;
+    //private currentMonth: number = ;
+    //private currentYear: number;
     private customDateContainer: D3Selection<any, any, any, any>;
     private dataView: powerbiVisualsApi.DataView;
     private static dateField: powerbiVisualsApi.DataViewMetadataColumn | undefined;
     private dateInputContainer: D3Selection<any, any, any, any>;
     private dateRangeContainer: D3Selection<any, any, any, any>;
     private dateRangeDropDown: D3Selection<any, any, any, any>;
-    private dateSelected: boolean = false;
+    //private dateSelected: boolean = false;
     private datesFiltered: boolean = false;
     private static DefaultTextXOffset: number = 5;
     private static DefaultTextYOffset: number = 20;
-    private endDate: Date | null = null;
+    //private endDate: Date = Utils.getNormalisedYearEnd(new Date());
     private endDateInput: HTMLInputElement;
     private endDateInputContainer: D3Selection<any, any, any, any>;
     private host: IVisualHost;
     private jsonFilters: AdvancedFilter[] = [];
     private monthLabel: D3Selection<any, any, any, any>;
     private options: powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
-    private previousStartDate: Date;
-    private previousEndDate: Date;
+    private viewport: powerbiVisualsApi.IViewport;
+    //private previousEndDate: Date | null = null;
+    //private previousStartDate: Date | null = null;
     private selectedDateRange: DateRange = "This Year";
-    private startDate: Date | null = null;
+    //private startDate: Date = Utils.getNormalisedYearStart(new Date());
     private startDateInput: HTMLInputElement;
     private startDateInputContainer: D3Selection<any, any, any, any>;
     private rootSelection: D3Selection<any, any, any, any>;
@@ -77,9 +80,18 @@ export class DatePicker implements IVisual {
         WeekdayLabelHeight: 20
     }
 
+    private static CalendarDatePeriods:  ICalendarDatePeriods = {
+        currentMonth: new Date().getMonth(),
+        currentYear: new Date().getFullYear(),
+        endDate: Utils.getNormalisedYearEnd(new Date()),
+        previousEndDate: null,
+        previousStartDate: null,
+        startDate: Utils.getNormalisedYearStart(new Date())
+    }
+
     //Power BI sends auto-date hierarchy range 01/01/2020 to 31/12/2030
     //This function requires turning off 'Auto Date/TIme' in Power BI Options
-    private intialiseStartAndEndDates(categories: powerbiVisualsApi.DataViewCategoryColumn[]): void {
+    /*private intialiseStartAndEndDates(categories: powerbiVisualsApi.DataViewCategoryColumn[]): void {
 
         // Find the column index with the 'Time' role
         const dateColIndex = categories.findIndex(category => category.source.roles && category.source.roles["Time"]);
@@ -105,18 +117,18 @@ export class DatePicker implements IVisual {
             minDate = new Date();
             maxDate = new Date();
         }
-        this.startDate = Utils.normaliseEndDate(minDate);
-        this.endDate = Utils.normaliseEndDate(maxDate);
-        this.previousStartDate = new Date(this.startDate);
-        this.previousEndDate = new Date(this.endDate);
+        this.calendarPeriods.startDate = Utils.normaliseEndDate(minDate);
+        this.calendarPeriods.endDate = Utils.normaliseEndDate(maxDate);
+        this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
+        this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
         this.startDateInput.min = Utils.formatDate(minDate);
-        this.endDateInput.max = Utils.formatDate(maxDate);
+        this.calendarPeriods.endDateInput.max = Utils.formatDate(maxDate);
 
         // Optional: set default values to the full range 
         this.startDateInput.value = Utils.formatDate(minDate);
-        this.endDateInput.value = Utils.formatDate(maxDate);
+        this.calendarPeriods.endDateInput.value = Utils.formatDate(maxDate);
         console.log("initialiseDateInput -minDate: ", minDate, "maxDate", maxDate);
-    }
+    }*/
 
     private applyDateRange(range: DateRange) {
         const today: Date = Utils.normaliseStartDate(new Date());
@@ -127,8 +139,8 @@ export class DatePicker implements IVisual {
             console.log("applyDateRange:\nthis.calendarInputEnabled -", this.calendarInputEnabled);
         } else {
 
-            this.previousStartDate = new Date(this.startDate);
-            this.previousEndDate = new Date(this.endDate);
+            this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
+            this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
             this.calendarInputEnabled = false;
             console.log("applyDateRange:\nthis.calendarInputEnabled -", this.calendarInputEnabled);
             this.updateCalendarVisibility(false); // hide calendar 
@@ -136,20 +148,20 @@ export class DatePicker implements IVisual {
 
         switch (range) {
             case "Today":
-                this.currentMonth = today.getMonth();
-                this.currentYear = today.getFullYear();
-                this.startDate = new Date(today);
+                this.calendarPeriods.currentMonth = today.getMonth();
+                this.calendarPeriods.currentYear = today.getFullYear();
+                this.calendarPeriods.startDate = new Date(today);
                 const endofToday = new Date(today);
-                this.endDate = Utils.normaliseEndDate(endofToday);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endofToday);
                 break;
             case "Yesterday":
                 const yesterday = new Date(today);
                 yesterday.setDate(today.getDate() - 1);
-                this.currentMonth = yesterday.getMonth();
-                this.currentYear = yesterday.getFullYear();
-                this.startDate = new Date(yesterday);
+                this.calendarPeriods.currentMonth = yesterday.getMonth();
+                this.calendarPeriods.currentYear = yesterday.getFullYear();
+                this.calendarPeriods.startDate = new Date(yesterday);
                 const endofYesterday = new Date(yesterday);
-                this.endDate = Utils.normaliseEndDate(endofYesterday);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endofYesterday);
                 // For single day ranges, just jump to the month containing that day
                 break;
             case "This Week":
@@ -165,41 +177,41 @@ export class DatePicker implements IVisual {
                 }
                 const sunday = Utils.normaliseEndDate(new Date(monday));
                 sunday.setDate(monday.getDate() + 6);
-                this.currentMonth = monday.getMonth();
-                this.currentYear = monday.getFullYear();
-                this.startDate = new Date(monday);
-                this.endDate = new Date(sunday);
+                this.calendarPeriods.currentMonth = monday.getMonth();
+                this.calendarPeriods.currentYear = monday.getFullYear();
+                this.calendarPeriods.startDate = new Date(monday);
+                this.calendarPeriods.endDate = new Date(sunday);
                 break;
             case "This Month":
-                this.currentMonth = today.getMonth();
-                this.currentYear = today.getFullYear();
-                this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                this.calendarPeriods.currentMonth = today.getMonth();
+                this.calendarPeriods.currentYear = today.getFullYear();
+                this.calendarPeriods.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
                 const endDateThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                this.endDate = Utils.normaliseEndDate(endDateThisMonth);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endDateThisMonth);
                 break;
             case "Last Month":
                 const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                this.currentMonth = lastMonth.getMonth();
-                this.currentYear = lastMonth.getFullYear();
-                this.startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
+                this.calendarPeriods.currentMonth = lastMonth.getMonth();
+                this.calendarPeriods.currentYear = lastMonth.getFullYear();
+                this.calendarPeriods.startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
                 const endDateLastMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
-                this.endDate = Utils.normaliseEndDate(endDateLastMonth);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endDateLastMonth);
                 break;
             case "This Year":
-                this.currentMonth = today.getMonth();
-                this.currentYear = today.getFullYear();
+                this.calendarPeriods.currentMonth = today.getMonth();
+                this.calendarPeriods.currentYear = today.getFullYear();
                 const startOfYear = new Date(today.getFullYear(), 0, 1);
-                this.startDate = new Date(startOfYear);
+                this.calendarPeriods.startDate = new Date(startOfYear);
                 const endOfYear = new Date(today.getFullYear(), 11, 31);
-                this.endDate = Utils.normaliseEndDate(endOfYear);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endOfYear);
                 break;
             case "Last Year":
                 const lastYear = new Date(today.getFullYear() - 1, 0, 1);
-                this.currentMonth = lastYear.getMonth();
-                this.currentYear = lastYear.getFullYear();
-                this.startDate = new Date(lastYear);
+                this.calendarPeriods.currentMonth = lastYear.getMonth();
+                this.calendarPeriods.currentYear = lastYear.getFullYear();
+                this.calendarPeriods.startDate = new Date(lastYear);
                 const endOfLastYear = new Date(lastYear.getFullYear(), 11, 31);
-                this.endDate = Utils.normaliseEndDate(endOfLastYear);
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(endOfLastYear);
                 break;
             case "Custom":
                 break;
@@ -209,17 +221,17 @@ export class DatePicker implements IVisual {
                 return _exhaustiveCheck;
         }
 
-        this.startDateInput.value = Utils.formatDate(this.startDate);
-        this.endDateInput.value = Utils.formatDate(this.endDate);
-        console.log("applyDateRange:\n", "this.startDateInput.value, this.startDate -\n",this.startDateInput.value, this.startDate, "\nthis.endDateInput.value, this.endDate) -\n",
-        this.endDateInput.value, this.endDate);
+        this.startDateInput.value = Utils.formatDate(this.calendarPeriods.startDate);
+        this.endDateInput.value = Utils.formatDate(this.calendarPeriods.endDate);
+        console.log("applyDateRange:\n", "this.startDateInput.value, this.calendarPeriods.startDate -\n",this.startDateInput.value, this.calendarPeriods.startDate, "\nthis.calendarPeriods.endDateInput.value, this.calendarPeriods.endDate) -\n",
+        this.endDateInput.value, this.calendarPeriods.endDate);
     }
 
     private datePeriodChanged() {
-        if (!this.previousStartDate || !this.previousEndDate) return false
-        const hasChanged = (this.previousStartDate.getTime() !== this.startDate.getTime())
-            || (this.previousEndDate.getTime() !== this.endDate.getTime());
-        if (hasChanged) { console.log("datePeriodChanged:\nhasChanged -", hasChanged, "\nthis.previousStartDate -", this.previousStartDate.getTime(), "this.startDate -", this.startDate.getTime(), "\nthis.previousEndDate -", this.previousEndDate.getTime(), "this.endDate -", this.endDate.getTime()); }
+        if (!this.calendarPeriods.previousStartDate || !this.calendarPeriods.previousEndDate) return false
+        const hasChanged = (this.calendarPeriods.previousStartDate.getTime() !== this.calendarPeriods.startDate.getTime())
+            || (this.calendarPeriods.previousEndDate.getTime() !== this.calendarPeriods.endDate.getTime());
+        if (hasChanged) { console.log("datePeriodChanged:\nhasChanged -", hasChanged, "\nthis.previousStartDate -", this.calendarPeriods.previousStartDate.getTime(), "this.calendarPeriods.startDate -", this.calendarPeriods.startDate.getTime(), "\nthis.previousEndDate -", this.calendarPeriods.previousEndDate.getTime(), "this.calendarPeriods.endDate -", this.calendarPeriods.endDate.getTime()); }
         return hasChanged;
     }
 
@@ -258,7 +270,7 @@ export class DatePicker implements IVisual {
                 filter,
                 "general",
                 "filter",
-                this.getFilterAction(this.startDate, this.endDate)
+                this.getFilterAction(this.calendarPeriods.startDate, this.calendarPeriods.endDate)
             );
         }
     }
@@ -269,13 +281,13 @@ export class DatePicker implements IVisual {
     };
 
     private renderCalendar() : void{ //options: VisualUpdateOptions): void {
-        console.log("renderCalendar:\n this.currentMonth, this.currentYear:\n ", this.currentMonth, this.currentYear, "\nthis.startDate, this.endDate:\n", this.startDate, this.endDate)
+        console.log("renderCalendar:\n this.calendarPeriods.currentMonth, this.calendarPeriods.currentYear:\n ", this.calendarPeriods.currentMonth, this.calendarPeriods.currentYear, "\nthis.startDate, this.calendarPeriods.endDate:\n", this.calendarPeriods.startDate, this.calendarPeriods.endDate)
         this.calendarSvg && this.calendarSvg.selectAll("*").remove();
 
         let today = new Date(); 
         today = Utils.normaliseStartDate(today);
         let width: number = this.options.viewport.width;
-        let height: number = this.options.viewport.height;
+        let height: number = this.calendarInteractive ? 400 : 80;//this.options.viewport.height;
         let props = this.calendarProperties;
         let startX = props.startXpoint + props.leftMargin;
         let startY = props.startYpoint + props.topMargin;
@@ -292,7 +304,7 @@ export class DatePicker implements IVisual {
             .attr("x", startX + 30)
             .attr("y", startY - props.weekdayLabelHeight - 20)
             .attr("dx", (props.daysInWeek * props.cellWidth) / 2 - props.cellWidth / 2)
-            .text(this.displayMonth(this.currentMonth) + " " + this.currentYear);
+            .text(this.displayMonth(this.calendarPeriods.currentMonth) + " " + this.calendarPeriods.currentYear);
         
         let weekdays: WeekDay[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ];
 
@@ -313,10 +325,10 @@ export class DatePicker implements IVisual {
             .attr("y", startY - props.weekdayLabelHeight - 25) //15
             .on("click", () => {
                 //this.datesFiltered = true;
-                this.currentMonth++;
-                if (this.currentMonth > 11) {
-                    this.currentMonth = 0;
-                    this.currentYear++;
+                this.calendarPeriods.currentMonth++;
+                if (this.calendarPeriods.currentMonth > 11) {
+                    this.calendarPeriods.currentMonth = 0;
+                    this.calendarPeriods.currentYear++;
                 }
                 //this.update(this.options); // redraw
                 this.renderCalendar();
@@ -330,27 +342,27 @@ export class DatePicker implements IVisual {
             .attr("y", startY - props.weekdayLabelHeight - 25) //15
             .on("click", () => {
                 //this.datesFiltered = true;
-                this.currentMonth--;
-                if (this.currentMonth < 0) {
-                    this.currentMonth = 11;
-                    this.currentYear--;
+                this.calendarPeriods.currentMonth--;
+                if (this.calendarPeriods.currentMonth < 0) {
+                    this.calendarPeriods.currentMonth = 11;
+                    this.calendarPeriods.currentYear--;
                 }
                 //this.update(this.options); // redraw
                 this.renderCalendar();
             });
 
         let totalDays = props.daysInWeek * props.weeksInMonth; // 42 slots
-        const daysInMonth = Utils.getNumberofDaysInCurrMonth(this.currentYear, this.currentMonth);
-        let firstDayOfMonth = Utils.getFirstDayOfMonth(this.currentYear, this.currentMonth); // 0=Sun, 1=Mon, ..., 6=Sat
+        const daysInMonth = Utils.getNumberofDaysInCurrMonth(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth);
+        let firstDayOfMonth = Utils.getFirstDayOfMonth(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth); // 0=Sun, 1=Mon, ..., 6=Sat
 
         firstDayOfMonth = (firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1);
-        const daysInPrevMonth = Utils.getNumberofDaysInPrevMonth(this.currentYear, this.currentMonth);
+        const daysInPrevMonth = Utils.getNumberofDaysInPrevMonth(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth);
 
         let daysArray: { day: number, inMonth: boolean, date: Date }[] = [];
 
         // Fill previous month's trailing days
         for (let i = 0; i < firstDayOfMonth; i++) {
-            const date = new Date(this.currentYear, this.currentMonth - 1, daysInPrevMonth - firstDayOfMonth + i + 1);
+            const date = new Date(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth - 1, daysInPrevMonth - firstDayOfMonth + i + 1);
             daysArray.push({
                 day: date.getDate(),
                 inMonth: false,
@@ -360,13 +372,13 @@ export class DatePicker implements IVisual {
         }
         // Fill current month days
         for (let d = 1; d <= daysInMonth; d++) {
-            const date = new Date(this.currentYear, this.currentMonth, d);
+            const date = new Date(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth, d);
             daysArray.push({ day: d, inMonth: true, date });
         }
         // Fill next month leading days until 42 cells
         let nextDay = 1;
         while (daysArray.length < 42) {
-            const date = new Date(this.currentYear, this.currentMonth + 1, nextDay++);
+            const date = new Date(this.calendarPeriods.currentYear, this.calendarPeriods.currentMonth + 1, nextDay++);
             daysArray.push({ day: date.getDate(), inMonth: false, date });
         }
 
@@ -392,8 +404,8 @@ export class DatePicker implements IVisual {
         // Circle for 'today'
         dayGroups.filter(d =>
             d.inMonth &&
-            today.getFullYear() === this.currentYear &&
-            today.getMonth() === this.currentMonth  &&
+            today.getFullYear() === this.calendarPeriods.currentYear &&
+            today.getMonth() === this.calendarPeriods.currentMonth  &&
             d.day === today.getDate()
         ).append("circle")
             .classed('todayCircle', true)
@@ -411,62 +423,106 @@ export class DatePicker implements IVisual {
             .style("fill", d => d.inMonth ? "#255A91" : "#999")
             .style("font-weight", d =>
                 d.inMonth &&
-                    this.currentYear === today.getFullYear() &&
-                    this.currentMonth === today.getMonth() &&
+                    this.calendarPeriods.currentYear === today.getFullYear() &&
+                    this.calendarPeriods.currentMonth === today.getMonth() &&
                     d.day === today.getDate() ? "bold" : "normal")
             .style("fill", d =>
                 d.inMonth &&
-                    this.currentYear === today.getFullYear() &&
-                    this.currentMonth === today.getMonth() &&
+                    this.calendarPeriods.currentYear === today.getFullYear() &&
+                    this.calendarPeriods.currentMonth === today.getMonth() &&
                     d.day === today.getDate() ? "white" : d.inMonth ? "#255A91" : "#999")
             .text(d => d.day);
 
+            //console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",this.calendarSvg);
+
         dayGroups.on("click", (event, d) => {
-            this.previousStartDate = new Date(this.startDate);
-            this.previousEndDate = new Date(this.endDate);
+            this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
+            this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
             if (this.targetInput.id === "startInput") {
                 this.startDateInput.value = Utils.formatDate(d.date);
-                this.startDate = Utils.normaliseStartDate(d.date);
-                //this.targetInput = this.endDateInput;
+                this.calendarPeriods.startDate = Utils.normaliseStartDate(d.date);
+                //this.targetInput = this.calendarPeriods.endDateInput;
                 this.updateCalendarVisibility(false);
                 //return;
             }
 
             if (this.targetInput.id === "endInput") {
                 this.endDateInput.value = Utils.formatDate(d.date);
-                this.endDate = Utils.normaliseEndDate(d.date)                
+                this.calendarPeriods.endDate = Utils.normaliseEndDate(d.date)                
                 //this.targetInput = null;
                 this.updateCalendarVisibility(false); // hide calendar after selection
             }
-            this.dateSelected = true;
-            console.log("update: daysGroup.on click:\nthis.dateSelected, this.datesFiltered:", this.dateSelected, this.datesFiltered);
+            //this.dateSelected = true;
+            console.log("update: daysGroup.on click:\nthis.dateSelected, this.datesFiltered:", /*this.dateSelected, */this.datesFiltered);
 
             if (DatePicker.dateField) {
-                this.datesFiltered = true;
-                this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
+                //this.datesFiltered = true;
+                this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
             }
             
             //this.update(options);
         });
 
-        console.log("renderCalender:\nthis.currentMonth, this.currentYear", this.currentMonth, this.currentYear);
+        console.log("renderCalender:\nthis.currentMonth, this.calendarPeriods.currentYear", this.calendarPeriods.currentMonth, this.calendarPeriods.currentYear);
     }
 
 
     //better 
-    private refreshCalendar() {
+    
+    private refreshCalendar(heightUpdate?: number) {
+        if (!this.dataView) return; 
+         
+    console.log("refreshCalendar:\nthis.calendarInteractive - ", this.calendarInteractive)
+    // Use the passed height or default to 80 
+    const height = heightUpdate || 80;
+    // Update the viewport for layout calculations 
+    this.viewport = { 
+        width: this.rootSelection.node()?.clientWidth || 400, 
+        height: height, 
+        //scale: 1 // optional, keep scale 1 unless you need zoom 
+    }; 
+    
+    console.log("refreshCalendar: this.viewport:", this.viewport); 
+  
+    // Trigger Power BI update 
+    this.update({ 
+        type: powerbiVisualsApi.VisualUpdateType.Data | powerbiVisualsApi.VisualUpdateType.Resize, 
+        viewport: this.viewport, 
+        viewMode: undefined, 
+        dataViews: [this.dataView], // pass the actual data 
+        jsonFilters: this.jsonFilters 
+    }); 
+
+} /*
         if (!this.dataView) return;
+        this.update(this.options) { 
+            const availableHeight = this.calendarInteractive ? 400 : 80;  // new height 
+            this.calendarSvg 
+                .attr("height", availableHeight) 
+                .attr("width", this.options.viewport.width); 
+            this.viewport = { 
+                width: this.options.viewport.width, 
+                height: availableHeight 
+            }; 
+        }
+        
+        this.viewport = this.calendarInteractive ? { 
+            width: 397.77777777777777, 
+            height: 394.44444444444446
+        } : { 
+            width: 397.77777777777777, 
+            height: 77.77777777777777
+        } 
+        console.log("refreshCalendar:\n this.viewport:\n", this.viewport)
+
         this.update({
             type: powerbiVisualsApi.VisualUpdateType.Data | powerbiVisualsApi.VisualUpdateType.Resize,
-            viewport: {
-                width: this.calendarSvg.node()?.clientWidth || 500,
-                height: this.calendarSvg.node()?.clientHeight || 400
-            },
+            viewport: this.viewport,
             viewMode: undefined,
             dataViews: [this.dataView], // pass the actual data 
             jsonFilters: this.jsonFilters
         });
-    }
+    }*/
 
     private updateCalendarVisibility(isVisible: boolean) {
         this.calendarInteractive = isVisible;
@@ -508,11 +564,15 @@ export class DatePicker implements IVisual {
                     .style("pointer-events", value === "Custom" ? "auto" : "none")
                     .style("opacity", value === "Custom" ? 1 : 0.5)
                 console.log("dateRangeDropDown\non change:\nvalue -", value);
-                this.applyDateRange(value);                
+                this.applyDateRange(value);
+                if (value !== "Custom" && DatePicker.dateField) {
+                    //this.datesFiltered = true;
+                    this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+                }                
                 //this.dateSelected = true;
-                //(value !== "Custom") && this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
-                this.datesFiltered = false;
-                (value !== "Custom") && this.update(this.options);
+                //(value !== "Custom") && this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+                //this.datesFiltered = false;
+                //(value !== "Custom") && this.update(this.options);
             });
 
         this.customDateContainer = this.rootSelection
@@ -540,23 +600,23 @@ export class DatePicker implements IVisual {
             .classed("calendarIcon", true)
             .html("📅")  // simple emoji, can replace with SVG           
             .on("click", () => {
+                if (!this.dataView) return;
                 if (this.calendarInputEnabled === true) {
                     console.log("constructor - calendarIconStartDate:\nthis.calendarInputEnabled -", this.calendarInputEnabled)
                     this.targetInput = this.startDateInput;
-                    //this.datesFiltered = true;
-                    this.updateCalendarVisibility(true); // show calendar 
-                    //this.currentMonth = this.startDate.getMonth();
-                    //this.currentYear = this.startDate.getFullYear(); 
-                    //if (this.options) this.update(this.options);
-                    if (this.startDate) { 
-                        this.currentMonth = this.startDate.getMonth(); 
-                        this.currentYear = this.startDate.getFullYear(); 
-                    } else { 
-                        const today = new Date(); 
-                        this.currentMonth = today.getMonth(); 
-                        this.currentYear = today.getFullYear(); 
-                    } 
+                    this.updateCalendarVisibility(true);
+                    const heightUpdate = this.calendarInteractive ? 400 : 80;
+                    this.rootSelection.style("height", `${heightUpdate}px`) // show calendar 
+
+                    const today = new Date(); 
+                    this.calendarPeriods.currentMonth = this.calendarPeriods.startDate 
+                        ? this.calendarPeriods.startDate.getMonth() 
+                        : today.getMonth(); 
+                    this.calendarPeriods.currentYear = this.calendarPeriods.startDate 
+                        ? this.calendarPeriods.startDate.getFullYear() 
+                        : today.getFullYear(); 
                     this.renderCalendar();
+                    this.refreshCalendar(heightUpdate);
                 }
             });
         this.endDateInputContainer = this.dateInputContainer
@@ -578,16 +638,16 @@ export class DatePicker implements IVisual {
                     this.targetInput = this.endDateInput;
                     //this.datesFiltered = true;
                     this.updateCalendarVisibility(true); // show calendar
-                    //this.currentMonth = this.endDate.getMonth();
-                    //this.currentYear = this.endDate.getFullYear();  
+                    //this.calendarPeriods.currentMonth = this.calendarPeriods.endDate.getMonth();
+                    //this.calendarPeriods.currentYear = this.calendarPeriods.endDate.getFullYear();  
                     //if (this.options) this.update(this.options);
-                    if (this.startDate) { 
-                        this.currentMonth = this.startDate.getMonth(); 
-                        this.currentYear = this.startDate.getFullYear(); 
+                    if (this.calendarPeriods.startDate) { 
+                        this.calendarPeriods.currentMonth = this.calendarPeriods.startDate.getMonth(); 
+                        this.calendarPeriods.currentYear = this.calendarPeriods.startDate.getFullYear(); 
                     } else { 
                         const today = new Date(); 
-                        this.currentMonth = today.getMonth(); 
-                        this.currentYear = today.getFullYear(); 
+                        this.calendarPeriods.currentMonth = today.getMonth(); 
+                        this.calendarPeriods.currentYear = today.getFullYear(); 
                     } 
                     this.renderCalendar();
                 }
@@ -597,11 +657,11 @@ export class DatePicker implements IVisual {
             .append("div")
             .classed("calendarContainer", true);
     
-        
-        //this.endDate = Utils.getNormalisedYearEnd(new Date);
-        //this.previousStartDate = new Date(this.startDate);
-        //this.previousEndDate = new Date(this.endDate);
-        //this.startDate = Utils.getNormalisedYearStart(new Date);
+        this.calendarPeriods = { ...this.calendarPeriods } as ICalendarDatePeriods
+        //this.calendarPeriods.endDate = Utils.getNormalisedYearEnd(new Date);
+        //this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
+        //this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
+        //this.calendarPeriods.startDate = Utils.getNormalisedYearStart(new Date);
         //this.calendarProperties = { ...DatePicker.CalendarMargins } as ICalendarProperties; 
         this.calendarProperties = {
             topMargin: DatePicker.CalendarMargins.TopMargin,
@@ -632,7 +692,11 @@ export class DatePicker implements IVisual {
             console.log("Options is not available", options);
             return;
         }
+        
         this.options = options;
+        console.log("update:\n boxes:\n", options);
+        this.viewport = options.viewport;
+        console.log("update - this.viewport:\n", options.viewport)
 
         this.dataView = options.dataViews && options.dataViews[0];
 
@@ -642,6 +706,9 @@ export class DatePicker implements IVisual {
         }
 
         const dataView: DataView = options.dataViews[0];
+
+        const range = dataView?.metadata?.objects?.sharedState?.rangeText; 
+        console.log("-------------- range - ", range);
 
         DatePicker.dateField = dataView.metadata.columns.find(col => col.roles && col.roles["Time"]);
         if (!DatePicker.dateField) {
@@ -655,28 +722,29 @@ export class DatePicker implements IVisual {
         }
 
         DatePicker.categories = dataView.categorical.categories as powerbiVisualsApi.DataViewCategoryColumn[];
-        
+
         if (!DatePicker.categories || DatePicker.categories.length === 0) {
             console.log("No categories found");
             return;
         }
 
-        if (!this.dateSelected) {
-            console.log("update:\nthis.dateSelected, this.selectedDateRange:\n", this.dateSelected, this.selectedDateRange)
+        /*if (!this.dateSelected) {
+            console.log("update:\nthis.dateSelected, this.selectedDateRange:\n",  this.dateSelected, , this.selectedDateRange)
             this.applyDateRange(this.selectedDateRange);            
-            this.dateSelected = true;
-            //this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
+            //this.dateSelected = true;
+            //this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
             //this.datesFiltered = true;
-        }
-        console.log("update:\nthis.dateSelected -", this.dateSelected)
+        }*/
 
-        if (!this.datesFiltered && this.datePeriodChanged()) {
-            this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
+        //console.log("update:\nthis.dateSelected -",  /*this.dateSelected, */)
+
+        /*if (!this.datesFiltered && this.datePeriodChanged()) {
+            this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
             this.datesFiltered = true;
-        }
+        }*/
         //console.log("Filtering complete")
         //this.datesFiltered = false;
-        console.log("update:\nthis.datesFiltered -", this.datesFiltered)
+        //console.log("update:\nthis.datesFiltered -", this.datesFiltered)
         
         /*if (!this.calendarInteractive) {
             console.log("update:\nthis.calendarInteractive -", this.calendarInteractive);

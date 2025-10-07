@@ -29,6 +29,12 @@
         }
     ],
     "objects": {
+        "sharedState": { 
+            "displayName": "Shared State", 
+            "properties": { 
+                "rangeText": { "type": { "text": true } } 
+            } 
+        },
         "general": {
             "displayName": "General",
             "displayNameKey": "Visual_General",
