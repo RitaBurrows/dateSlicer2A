@@ -18,6 +18,7 @@ export declare class DatePicker implements IVisual {
     private customDateContainer;
     private dataView;
     private static dateField;
+    private static dateString;
     private dateInputContainer;
     private dateRangeContainer;
     private dateRangeDropDown;
@@ -26,11 +27,11 @@ export declare class DatePicker implements IVisual {
     private static DefaultTextYOffset;
     private endDateInput;
     private endDateInputContainer;
+    private filterApplied;
     private host;
     private jsonFilters;
     private monthLabel;
     private options;
-    private viewport;
     private selectedDateRange;
     private startDateInput;
     private startDateInputContainer;
@@ -42,10 +43,9 @@ export declare class DatePicker implements IVisual {
     private datePeriodChanged;
     getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction;
     private applyFilter;
-    private displayMonth;
-    private renderCalendar;
-    private refreshCalendar;
-    private updateCalendarVisibility;
+    private splitDateString;
+    private createDateString;
+    private updateSharedState;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
 }

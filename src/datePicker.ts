@@ -10,6 +10,7 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 import VisualUpdateOptions = powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbiVisualsApi.extensibility.visual.IVisual;
 import DataView = powerbiVisualsApi.DataView;
+import DataViewPropertyValue = powerbiVisualsApi.DataViewPropertyValue;
 import IVisualHost = powerbiVisualsApi.extensibility.visual.IVisualHost;
 
 import "./../style/visual.less";
@@ -24,6 +25,7 @@ import {
     MonthNames, 
     WeekDay
 } from "./calendarTypes"
+import { CartesianChartType } from "powerbi-visuals-utils-chartutils/lib/label/labelUtils";
 
 export class DatePicker implements IVisual {
     private arrowDown: D3Selection<any, any, any, any>;
@@ -42,6 +44,7 @@ export class DatePicker implements IVisual {
     private customDateContainer: D3Selection<any, any, any, any>;
     private dataView: powerbiVisualsApi.DataView;
     private static dateField: powerbiVisualsApi.DataViewMetadataColumn | undefined;
+    private static dateString: DataViewPropertyValue | undefined
     private dateInputContainer: D3Selection<any, any, any, any>;
     private dateRangeContainer: D3Selection<any, any, any, any>;
     private dateRangeDropDown: D3Selection<any, any, any, any>;
@@ -52,11 +55,12 @@ export class DatePicker implements IVisual {
     //private endDate: Date = Utils.getNormalisedYearEnd(new Date());
     private endDateInput: HTMLInputElement;
     private endDateInputContainer: D3Selection<any, any, any, any>;
+    private filterApplied: boolean = false;
     private host: IVisualHost;
     private jsonFilters: AdvancedFilter[] = [];
     private monthLabel: D3Selection<any, any, any, any>;
     private options: powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
-    private viewport: powerbiVisualsApi.IViewport;
+    //private viewport: powerbiVisualsApi.IViewport;
     //private previousEndDate: Date | null = null;
     //private previousStartDate: Date | null = null;
     private selectedDateRange: DateRange = "This Year";
@@ -98,7 +102,8 @@ export class DatePicker implements IVisual {
             console.log("applyDateRange:\nthis.calendarInputEnabled -", this.calendarInputEnabled);
         } else {
 
-            this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
+            console.log("applyDateRange: else")
+            //this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
             this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
             this.calendarInputEnabled = false;
             console.log("applyDateRange:\nthis.calendarInputEnabled -", this.calendarInputEnabled);
@@ -178,9 +183,9 @@ export class DatePicker implements IVisual {
                 const _exhaustiveCheck: never = range
                 return _exhaustiveCheck;
         }
-
-        this.startDateInput.value = Utils.formatDate(this.calendarPeriods.startDate);
-        this.endDateInput.value = Utils.formatDate(this.calendarPeriods.endDate);
+        
+        //this.startDateInput.value = Utils.formatDate(this.calendarPeriods.startDate, "inputBox");
+        //this.endDateInput.value = Utils.formatDate(this.calendarPeriods.endDate, "inputBox");
         console.log("applyDateRange:\n", "this.startDateInput.value, this.calendarPeriods.startDate -\n",this.startDateInput.value, this.calendarPeriods.startDate, "\nthis.calendarPeriods.endDateInput.value, this.calendarPeriods.endDate) -\n",
         this.endDateInput.value, this.calendarPeriods.endDate);
     }
@@ -203,7 +208,7 @@ export class DatePicker implements IVisual {
     }
 
     private applyFilter(datefield: any, startDate: Date, endDate: Date) {
-        console.log("applyFilter:\nstartDate, endDate -",startDate, endDate);
+        try{console.log("applyFilter:\nstartDate, endDate -",startDate, endDate);
         if (datefield) {
             // Create filter
             const filter = new AdvancedFilter(
@@ -229,9 +234,35 @@ export class DatePicker implements IVisual {
                 this.getFilterAction(this.calendarPeriods.startDate, this.calendarPeriods.endDate)
             );
         }
+    }catch(e){console.log(e)}
+    }
+
+    
+    private splitDateString(dateStr: any){
+        const dates = dateStr.split(" to ")
+        this.calendarPeriods.startDate = new Date(dates[0])
+        this.calendarPeriods.endDate = Utils.normaliseEndDate(new Date(dates[1]))
+    }
+
+    private createDateString(startDate: Date, endDate: Date){
+        return `${Utils.formatDate(startDate, "sharedState")} to ${Utils.formatDate(endDate, "sharedState")}`;
+    }
+
+    
+    private updateSharedState(startDate: Date,endDate: Date){
+        const sharedState = this.createDateString(startDate, endDate);
+        this.host.persistProperties({ 
+            merge: [{ 
+                objectName: "sharedState", 
+                selector: null, 
+                properties: { rangeText: sharedState } 
+
+            }] 
+        });
     }
 
     constructor(options: VisualConstructorOptions) {
+        this.calendarPeriods = { ...DatePicker.CalendarDatePeriods } as ICalendarDatePeriods
         this.host = options.host;
         const element: HTMLElement = options.element;
         this.rootSelection = d3Select(element)
@@ -267,6 +298,7 @@ export class DatePicker implements IVisual {
                 console.log("dateRangeDropDown\non change:\nvalue -", value);
                 this.applyDateRange(value);
                 if (value !== "Custom" && DatePicker.dateField) {
+                    this.updateSharedState(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
                     this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
                 }                
             });
@@ -284,12 +316,14 @@ export class DatePicker implements IVisual {
         this.startDateInputContainer = this.dateInputContainer
             .append("div")
             .classed("startDateInputContainer", true)
-        this.startDateInput = this.startDateInputContainer
+        const inputBoxStartDate = Utils.formatDate(this.calendarPeriods.startDate, "inputBox");
+    this.startDateInput = this.startDateInputContainer
             .append("input")
             .attr("type", "text")
             .attr("id", "startInput")
+            .property("value", inputBoxStartDate)
             .node() as HTMLInputElement;
-            
+           
         // Calendar icon (using Unicode or SVG) 
         this.calendarIconStartDate = this.startDateInputContainer
             .append("span")
@@ -316,10 +350,13 @@ export class DatePicker implements IVisual {
             .append("div")
             .classed("endDateInputContainer", true)
         // Initialize with today's date 
+        
+        const inputBoxEndDate = Utils.formatDate(this.calendarPeriods.endDate, "inputBox");
         this.endDateInput = this.endDateInputContainer
             .append("input")
             .attr("type", "text")
             .attr("id", "endInput")
+            .property("value", inputBoxEndDate)
             .node() as HTMLInputElement;
         this.calendarIconEndDate = this.endDateInputContainer
             .append("span")
@@ -338,19 +375,20 @@ export class DatePicker implements IVisual {
                         this.calendarPeriods.currentYear = today.getFullYear(); 
                     } 
                 }
-            });
+            });            
     }
 
     public update(options: VisualUpdateOptions) {
+        try{
         if (!options) {
             console.log("Options is not available", options);
             return;
         }
         
         this.options = options;
-        console.log("update:\n boxes:\n", options);
-        this.viewport = options.viewport;
-        console.log("update - this.viewport:\n", options.viewport)
+        console.log("update:\nDatePicker:\n", options);
+        //this.viewport = options.viewport;
+        //console.log("update - this.viewport:\n", options.viewport)
 
         this.dataView = options.dataViews && options.dataViews[0];
 
@@ -360,9 +398,14 @@ export class DatePicker implements IVisual {
         }
 
         const dataView: DataView = options.dataViews[0];
+             
+        //console.log("update:\n, DatePicker.dateString", range1)
 
-        const range = dataView?.metadata?.objects?.sharedState?.rangeText; 
-        console.log("-------------- range - ", range);
+       //const range = dataView?.metadata?.objects?.sharedState?.rangeText; 
+        //console.log("-------------- range - ", range);
+        
+        //compare dataViewPropertyValue and range
+        //const dataViewPropertyValue: DataViewPropertyValue = dataView.metadata.objects;
 
         DatePicker.dateField = dataView.metadata.columns.find(col => col.roles && col.roles["Time"]);
         if (!DatePicker.dateField) {
@@ -375,12 +418,40 @@ export class DatePicker implements IVisual {
             return;
         }
 
+        if (!dataView.categorical.categories || dataView.categorical.categories.length === 0) {
+            console.log("No categories found");
+            return;
+        }
+        
+        if(!this.filterApplied && options.jsonFilters.length == 0){
+            this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+            this.filterApplied = true;
+        }
+        
+        const rangetext = dataView.metadata?.objects?.sharedState?.rangeText;
+        DatePicker.dateString = rangetext && rangetext ||  this.createDateString(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+        console.log("update - DatePicker.dateString - ", DatePicker.dateString);
+        } 
+        catch(err){
+            console.log(err)
+        }
+        /* const range1 = (dataViewPropertyValue && typeof dataViewPropertyValue === "object" && "sharedState" in dataViewPropertyValue)
+            ? (dataViewPropertyValue as any).sharedState.rangeText
+            : undefined;
+            */
+        /*
+        if (!dataView.categorical) {
+            console.log("No categorical data found");
+            return;
+        }
+
         DatePicker.categories = dataView.categorical.categories as powerbiVisualsApi.DataViewCategoryColumn[];
 
         if (!DatePicker.categories || DatePicker.categories.length === 0) {
             console.log("No categories found");
             return;
-        }           
+        } 
+            */          
         console.log("******* End of update *******");
     }
     
