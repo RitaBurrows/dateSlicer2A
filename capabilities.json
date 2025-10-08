@@ -5,6 +5,12 @@
             "name": "Time",
             "kind": "Grouping",
             "displayNameKey": "Date_Full"
+        },
+        {
+            "displayName": "Calendar Visibility",
+            "name": "Show",
+            "kind": "Measure",
+            "displayNameKey": "show_calendar"
         }
     ],
     "dataViewMappings": [
@@ -12,6 +18,11 @@
             "conditions": [
                 {
                     "Time": {
+                        "max": 1
+                    }
+                },
+                {
+                    "Show": {
                         "max": 1
                     }
                 }
@@ -24,6 +35,15 @@
                     "dataReductionAlgorithm": {
                         "sample": {}
                     }
+                },
+                "values": {
+                    "select" : [
+                        {
+                            "bind": {
+                                "to": "Show"
+                            }
+                        }
+                    ]
                 }
             }
         }
@@ -35,6 +55,12 @@
                 "dateString": { "type": { "text": true } } 
             } 
         },
+        "calendarSettings": { 
+            "displayName": "Calendar Settings", 
+            "properties": { 
+                "showCalendar": { "type": { "bool": true } } 
+            } 
+        }, 
         "general": {
             "displayName": "General",
             "displayNameKey": "Visual_General",

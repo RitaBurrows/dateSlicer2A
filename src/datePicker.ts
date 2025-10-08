@@ -433,6 +433,17 @@ export class DatePicker implements IVisual {
         const dateRangetext = dataView.metadata?.objects?.sharedDateRange?.dateString;
         DatePicker.dateString = dateRangetext && dateRangetext ||  this.createDateString(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
         console.log("update - DatePicker.dateString - ", DatePicker.dateString);
+
+        const  calendarFlag = dataView.categorical.values?.[0]?.values?.[0] ?? 0; 
+        console.log("update - calendarFlag: ", calendarFlag, "\ndataView.categorical.values?.[0]?.values?.[0]",dataView.categorical.values?.[0]?.values?.[0] )
+         if (calendarFlag === 1) { 
+            // show calendar 
+            // can only do this inside visual
+        } else { 
+            //hide calendar 
+        } 
+
+ 
         } 
         catch(err){
             console.log(err)
