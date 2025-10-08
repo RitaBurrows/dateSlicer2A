@@ -5,8 +5,8 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
-var datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG: IVisualPlugin = {
-    name: 'datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG',
+var datePicker2D48A1603A5164157AE234EC418C72DFB: IVisualPlugin = {
+    name: 'datePicker2D48A1603A5164157AE234EC418C72DFB',
     displayName: 'DatePicker',
     class: 'DatePicker',
     apiVersion: '5.11.0',
@@ -27,6 +27,6 @@ var datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG: IVisualPlugin = {
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG"] = datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG;
+    powerbi.visuals.plugins["datePicker2D48A1603A5164157AE234EC418C72DFB"] = datePicker2D48A1603A5164157AE234EC418C72DFB;
 }
-export default datePicker2D48A1603A5164157AE234EC418C72DFB_DEBUG;
+export default datePicker2D48A1603A5164157AE234EC418C72DFB;
