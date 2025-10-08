@@ -29,10 +29,10 @@
         }
     ],
     "objects": {
-        "sharedState": { 
+        "sharedDateRange": { 
             "displayName": "Shared Date Sting", 
             "properties": { 
-                "rangeText": { "type": { "text": true } } 
+                "dateString": { "type": { "text": true } } 
             } 
         },
         "general": {

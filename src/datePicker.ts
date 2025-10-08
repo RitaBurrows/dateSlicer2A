@@ -252,9 +252,9 @@ export class DatePicker implements IVisual {
         const sharedState = this.createDateString(startDate, endDate);
         this.host.persistProperties({ 
             merge: [{ 
-                objectName: "sharedState", 
+                objectName: "sharedDateRange", 
                 selector: null, 
-                properties: { rangeText: sharedState } 
+                properties: { dateString: sharedState } 
 
             }] 
         });
@@ -296,9 +296,9 @@ export class DatePicker implements IVisual {
                     .style("opacity", value === "Custom" ? 1 : 0.5)
                 console.log("dateRangeDropDown\non change:\nvalue -", value);
                 this.applyDateRange(value);
+                this.updateSharedState(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
                 console.log("dateRangeDropDown - onChange - DatePicker.dateString:\n",DatePicker.dateString,"dateRangeDropDown - onChange - this.options:\n", this.options);
                 if (value !== "Custom" && DatePicker.dateField) {
-                    this.updateSharedState(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
                     this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
                 }                
             });
@@ -401,7 +401,7 @@ export class DatePicker implements IVisual {
              
         //console.log("update:\n, DatePicker.dateString", range1)
 
-       //const range = dataView?.metadata?.objects?.sharedState?.rangeText; 
+       //const range = dataView?.metadata?.objects?.sharedDateRange?.dateString; 
         //console.log("-------------- range - ", range);
         
         //compare dataViewPropertyValue and range
@@ -423,21 +423,22 @@ export class DatePicker implements IVisual {
             return;
         }
         
+        console.log("+++++++++++++++++++++++++++++++++.", this.jsonFilters.length, this.jsonFilters.length)
         if(!this.filterApplied && options.jsonFilters.length == 0){
             console.log("update:\n!this.filterApplied, options.jsonFilters.length:\n", !this.filterApplied, options.jsonFilters.length)
             this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
             this.filterApplied = true;
         }
         console.log("getting rnage text")
-        const rangetext = dataView.metadata?.objects?.sharedState?.rangeText;
-        DatePicker.dateString = rangetext && rangetext ||  this.createDateString(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+        const dateRangetext = dataView.metadata?.objects?.sharedDateRange?.dateString;
+        DatePicker.dateString = dateRangetext && dateRangetext ||  this.createDateString(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
         console.log("update - DatePicker.dateString - ", DatePicker.dateString);
         } 
         catch(err){
             console.log(err)
         }
-        /* const range1 = (dataViewPropertyValue && typeof dataViewPropertyValue === "object" && "sharedState" in dataViewPropertyValue)
-            ? (dataViewPropertyValue as any).sharedState.rangeText
+        /* const range1 = (dataViewPropertyValue && typeof dataViewPropertyValue === "object" && "sharedDateRange" in dataViewPropertyValue)
+            ? (dataViewPropertyValue as any).sharedDateRange.dateString
             : undefined;
             */
         /*
