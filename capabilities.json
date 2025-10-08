@@ -30,7 +30,7 @@
     ],
     "objects": {
         "sharedState": { 
-            "displayName": "Shared State", 
+            "displayName": "Shared Date Sting", 
             "properties": { 
                 "rangeText": { "type": { "text": true } } 
             } 
