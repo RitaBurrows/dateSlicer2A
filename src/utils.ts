@@ -7,12 +7,12 @@ export class Utils {
         return stringType === "inputBox" ? `${day}/${month}/${year}` : `${year}-${month}-${day}`;
     }
 
-    public static getNormalisedYearStart(date: Date): Date {
-            return new Date(date.getFullYear(), 0, 1);
+    public static createDateString(startDate: Date, endDate: Date){
+        return `${this.formatDate(startDate, "sharedState")} to ${Utils.formatDate(endDate, "sharedState")}`;
     }
 
-    public static getNormalisedYearEnd(date: Date): Date {
-            return new Date(date.getFullYear(), 11, 31, 23, 59, 59, 999);
+    public static getNormalisedYearStart(date: Date): Date {
+            return new Date(date.getFullYear(), 0, 1);
     }
     
     public static normaliseStartDate(date: Date): Date {

@@ -1,7 +1,7 @@
 export declare class Utils {
     static formatDate(date: Date, stringType: string): string;
+    static createDateString(startDate: Date, endDate: Date): string;
     static getNormalisedYearStart(date: Date): Date;
-    static getNormalisedYearEnd(date: Date): Date;
     static normaliseStartDate(date: Date): Date;
     static normaliseEndDate(date: Date): Date;
     static getFirstDayOfMonth(year: number, month: number): number;

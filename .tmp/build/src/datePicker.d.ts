@@ -14,11 +14,10 @@ export declare class DatePicker implements IVisual {
     private calendarPeriods;
     private calendarProperties;
     private calendarSvg;
-    private static categories;
     private customDateContainer;
     private dataView;
     private static dateField;
-    private static dateString;
+    private dateString;
     private dateInputContainer;
     private dateRangeContainer;
     private dateRangeDropDown;
@@ -37,14 +36,12 @@ export declare class DatePicker implements IVisual {
     private startDateInputContainer;
     private rootSelection;
     private targetInput;
-    private static CalendarMargins;
     private static CalendarDatePeriods;
     private applyDateRange;
     private datePeriodChanged;
     getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction;
     private applyFilter;
     private splitDateString;
-    private createDateString;
     private updateSharedState;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
