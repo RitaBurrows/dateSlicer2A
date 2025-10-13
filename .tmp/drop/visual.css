@@ -6,13 +6,26 @@
   color: #255A91;
   font-family: 'Calibri', sans-serif;
 }
-.calendarRoot .dropDownContainer .dateRangeDropdown {
+.calendarRoot .dateRangeContainer {
+  gap: 10px;
+}
+.calendarRoot .dateRangeContainer .rangeTypeDropDown,
+.calendarRoot .dateRangeContainer .rangePeriodDropDown {
   height: 30px;
-  width: 180px;
+  width: 65px;
   font-size: 12px;
   color: #255A91;
+  margin-left: 5px;
 }
-.calendarRoot .dropDownContainer select {
+.calendarRoot .dateRangeContainer #rangeQuantity {
+  width: 35px;
+  height: 30px;
+  margin-left: 5px;
+  font-size: 12px;
+  color: #255A91;
+  box-sizing: border-box;
+}
+.calendarRoot .dateRangeContainer select {
   cursor: pointer;
 }
 .calendarRoot .customDateContainer {
@@ -30,10 +43,6 @@
 .calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer input,
 .calendarRoot .customDateContainer .dateInputContainer .endDateInputContainer input {
   width: 100px;
-  height: 30px;
-  font-size: 12px;
-  color: #255A91;
-  box-sizing: border-box;
   padding-right: 30px;
 }
 .calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer .calendarIcon,
@@ -52,7 +61,36 @@
   margin-bottom: 20px;
 }
 .calendarRoot .disabled {
+  pointer-events: none;
   opacity: 0.5;
+}
+.calendarRoot select,
+.calendarRoot input {
+  height: 30px;
+  font-size: 12px;
+  color: #255A91;
+  border: 0.5px solid #255A91;
+  border-radius: 4px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.calendarRoot select:hover,
+.calendarRoot input:hover {
+  border-color: #1b4b7c;
+}
+.calendarRoot select:focus,
+.calendarRoot input:focus {
+  border-color: #0a3b6e;
+  box-shadow: 0 0 3px rgba(37, 90, 145, 0.5);
+}
+.calendarRoot select:disabled,
+.calendarRoot input:disabled {
+  border-color: #ccc;
+  background-color: #f9f9f9;
+  color: #999;
+  cursor: not-allowed;
 }
 
 

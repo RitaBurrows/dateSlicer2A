@@ -1,12 +1,17 @@
-export type DateRange = 
-    |"Today" 
-    | "Yesterday" 
-    | "This Week" 
-    | "Last Week" 
-    | "This Month" 
-    | "Last Month" 
-    | "This Year" 
-    | "Last Year" 
+export type DateRangeType = 
+    | "This"
+    | "Last"
     | "Custom"
- 
+
+export type DateRangeQuantity = number | null;
+
+export type DateRangePeriod =
+    | "Day"
+    | "Days"
+    | "Week"
+    | "Weeks"
+    | "Month"
+    | "Months"
+    | "Year"
+    | "Years"
     

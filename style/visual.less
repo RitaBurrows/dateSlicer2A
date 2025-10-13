@@ -9,26 +9,33 @@
     color: #255A91;
     font-family: 'Calibri', sans-serif;
 
-    //.calendarSvg {
-       // display: none;
-    //}
-
-    .dropDownContainer {
-        //margin-right: 10px;
-        //width: 2px;
+    .dateRangeContainer {
+        gap: 10px;
         
-        .dateRangeDropdown {
+        .rangeTypeDropDown, .rangePeriodDropDown {
             height: 30px;
-            width: 180px;
+            width: 65px;
             font-size: 12px;
-            //padding: 4px;
-            color: #255A91;
+            color: #255A91;                        
+            margin-left: 5px;
         }
+
+        #rangeQuantity  {
+        width: 35px;
+        height: 30px;
+        margin-left: 5px;
+        font-size: 12px;
+        color: #255A91;
+        box-sizing: border-box;
+
+    }
 
         select {
             cursor: pointer;
         }
     }
+
+    
     
 
     .customDateContainer { 
@@ -44,10 +51,6 @@
 
                 input {
                     width: 100px;
-                    height: 30px;
-                    font-size: 12px;
-                    color: #255A91;
-                    box-sizing: border-box; 
                     padding-right: 30px;
                 }
                 .calendarIcon {
@@ -74,6 +77,40 @@
         }
 
     .disabled {
+        pointer-events: none;
         opacity: 0.5;
     }
+
+    select, 
+    input { 
+        height: 30px;
+        font-size: 12px; 
+        color: #255A91; 
+        border: 0.5px solid #255A91;       // default border color 
+        border-radius: 4px; 
+        padding: 0 5px; 
+        box-sizing: border-box; 
+        outline: none;                   // remove default browser outline 
+        transition: border-color 0.2s, box-shadow 0.2s;  // smooth visual feedback 
+
+    } 
+
+    select:hover,
+    input:hover { 
+        border-color: #1b4b7c;           // darker shade on hover 
+    } 
+
+    select:focus, 
+    input:focus { 
+        border-color: #0a3b6e; 
+        box-shadow: 0 0 3px rgba(37, 90, 145, 0.5); 
+    }
+
+    select:disabled, 
+    input:disabled { 
+        border-color: #ccc; 
+        background-color: #f9f9f9; 
+        color: #999; 
+        cursor: not-allowed; 
+    } 
 }
