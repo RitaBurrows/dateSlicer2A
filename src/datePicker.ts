@@ -14,101 +14,54 @@ import DataViewPropertyValue = powerbiVisualsApi.DataViewPropertyValue;
 import IVisualHost = powerbiVisualsApi.extensibility.visual.IVisualHost;
 
 import "./../style/visual.less";
-import {
-    ICalendarDatePeriods,
-    ICalendarProperties
-} from "./interfaces"
 import { Utils } from "./utils";
-import {
-    DateRange,
-    MonthNames,
-    WeekDay
-} from "./calendarTypes"
+import { DateRange } from "./calendarTypes"
 
 export class DatePicker implements IVisual {
-    private arrowDown: D3Selection<any, any, any, any>;
-    private arrowUp: D3Selection<any, any, any, any>;
-    private calendarContainer: D3Selection<any, any, any, any>;
     private calendarIconEndDate: D3Selection<any, any, any, any>;
     private calendarIconStartDate: D3Selection<any, any, any, any>;
     private calendarInputEnabled: boolean = false;
-    private calendarInteractive: boolean = false;
-    private calendarPeriods: ICalendarDatePeriods;
-    private calendarProperties: ICalendarProperties;
-    private calendarSvg: Selection<SVGElement>;
-    //private static categories: powerbiVisualsApi.DataViewCategoryColumn[] | undefined
-    //private currentMonth: number = ;
-    //private currentYear: number;
     private customDateContainer: D3Selection<any, any, any, any>;
     private dataView: powerbiVisualsApi.DataView;
-    private static dateField: powerbiVisualsApi.DataViewMetadataColumn | undefined;
-    private dateString: DataViewPropertyValue | undefined
+    private static dateField: powerbiVisualsApi.DataViewMetadataColumn | null;
+    private dateString: DataViewPropertyValue | null
     private dateInputContainer: D3Selection<any, any, any, any>;
     private dateRangeContainer: D3Selection<any, any, any, any>;
     private dateRangeDropDown: D3Selection<any, any, any, any>;
-    //private dateSelected: boolean = false;
-    private datesFiltered: boolean = false;
-    private static DefaultTextXOffset: number = 5;
-    private static DefaultTextYOffset: number = 20;
-    //private endDate: Date = Utils.getNormalisedYearEnd(new Date());
+    private endDate: Date = Utils.normaliseEndDate(new Date());
     private endDateInput: HTMLInputElement;
     private endDateInputContainer: D3Selection<any, any, any, any>;
     private filterApplied: boolean = false;
     private host: IVisualHost;
     private jsonFilters: AdvancedFilter[] = [];
-    private monthLabel: D3Selection<any, any, any, any>;
     private options: powerbiVisualsApi.extensibility.visual.VisualUpdateOptions;
-    //private viewport: powerbiVisualsApi.IViewport;
-    //private previousEndDate: Date | null = null;
-    //private previousStartDate: Date | null = null;
+    private previousDateString: DataViewPropertyValue | null = null;
     private selectedDateRange: DateRange = "This Year";
-    //private startDate: Date = Utils.getNormalisedYearStart(new Date());
+    private startDate: Date = Utils.getNormalisedYearStart(new Date());
     private startDateInput: HTMLInputElement;
     private startDateInputContainer: D3Selection<any, any, any, any>;
     private rootSelection: D3Selection<any, any, any, any>;
-    private targetInput: HTMLInputElement | null = null;
-
-    private static CalendarDatePeriods: ICalendarDatePeriods = {
-        currentMonth: new Date().getMonth(),
-        currentYear: new Date().getFullYear(),
-        endDate: Utils.normaliseEndDate(new Date()),
-        previousEndDate: null,
-        previousStartDate: null,
-        startDate: Utils.getNormalisedYearStart(new Date())
-    }
 
     private applyDateRange(range: DateRange) {
         const today: Date = Utils.normaliseStartDate(new Date());
-
-        if (range === "Custom") {
-            // Show calendar so user can pick a date 
-            this.calendarInputEnabled = true;
-            console.log("DatePicker - applyDateRange - this.calendarInputEnabled:", this.calendarInputEnabled);
-        } else {
-
-            console.log("applyDateRange: else")
-            //this.calendarPeriods.previousStartDate = new Date(this.calendarPeriods.startDate);
-            this.calendarPeriods.previousEndDate = new Date(this.calendarPeriods.endDate);
-            this.calendarInputEnabled = false;
-            console.log("DatePicker - applyDateRange - this.calendarInputEnabled:", this.calendarInputEnabled);
-        }
+        this.previousDateString = this.dateString;
 
         switch (range) {
             case "Today":
-                this.calendarPeriods.currentMonth = today.getMonth();
-                this.calendarPeriods.currentYear = today.getFullYear();
-                this.calendarPeriods.startDate = new Date(today);
+                ///this.currentMonth = today.getMonth();
+                ///this.currentYear = today.getFullYear();
+                this.startDate = new Date(today);
                 //const endofToday = new Date(today);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(today);
+                this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Yesterday":
                 const yesterday = new Date(today);
                 yesterday.setDate(today.getDate() - 1);
-                this.calendarPeriods.currentMonth = yesterday.getMonth();
-                this.calendarPeriods.currentYear = yesterday.getFullYear();
-                this.calendarPeriods.startDate = new Date(yesterday);
+                ///this.currentMonth = yesterday.getMonth();
+                ///this.currentYear = yesterday.getFullYear();
+                this.startDate = new Date(yesterday);
                 const endofYesterday = new Date(yesterday);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(endofYesterday);
+                this.endDate = Utils.normaliseEndDate(endofYesterday);
                 // For single day ranges, just jump to the month containing that day
                 break;
             case "This Week":
@@ -124,43 +77,44 @@ export class DatePicker implements IVisual {
                 }
                 const sunday = Utils.normaliseEndDate(new Date(monday));
                 sunday.setDate(monday.getDate() + 6);
-                this.calendarPeriods.currentMonth = monday.getMonth();
-                this.calendarPeriods.currentYear = monday.getFullYear();
-                this.calendarPeriods.startDate = new Date(monday);
-                this.calendarPeriods.endDate = (range === "Last Week") ? new Date(sunday) : new Date(Utils.normaliseEndDate(today));
+                ///this.currentMonth = monday.getMonth();
+                ///this.currentYear = monday.getFullYear();
+                this.startDate = new Date(monday);
+                this.endDate = (range === "Last Week") ? new Date(sunday) : new Date(Utils.normaliseEndDate(today));
                 break;
             case "This Month":
-                this.calendarPeriods.currentMonth = today.getMonth();
-                this.calendarPeriods.currentYear = today.getFullYear();
-                this.calendarPeriods.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                ///this.currentMonth = today.getMonth();
+                ///this.currentYear = today.getFullYear();
+                this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
                 //const endDateThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(today);
+                this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Last Month":
                 const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                this.calendarPeriods.currentMonth = lastMonth.getMonth();
-                this.calendarPeriods.currentYear = lastMonth.getFullYear();
-                this.calendarPeriods.startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
+                ///this.currentMonth = lastMonth.getMonth();
+                ///this.currentYear = lastMonth.getFullYear();
+                this.startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
                 const endDateLastMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(endDateLastMonth);
+                this.endDate = Utils.normaliseEndDate(endDateLastMonth);
                 break;
             case "This Year":
-                this.calendarPeriods.currentMonth = today.getMonth();
-                this.calendarPeriods.currentYear = today.getFullYear();
+                ///this.currentMonth = today.getMonth();
+                ///this.currentYear = today.getFullYear();
                 const startOfYear = new Date(today.getFullYear(), 0, 1);
-                this.calendarPeriods.startDate = new Date(startOfYear);
+                this.startDate = new Date(startOfYear);
                 //const endOfYear = new Date(today.getFullYear(), 11, 31);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(today);
+                this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Last Year":
                 const lastYear = new Date(today.getFullYear() - 1, 0, 1);
-                this.calendarPeriods.currentMonth = lastYear.getMonth();
-                this.calendarPeriods.currentYear = lastYear.getFullYear();
-                this.calendarPeriods.startDate = new Date(lastYear);
+                ///this.currentMonth = lastYear.getMonth();
+                ///this.currentYear = lastYear.getFullYear();
+                this.startDate = new Date(lastYear);
                 const endOfLastYear = new Date(lastYear.getFullYear(), 11, 31);
-                this.calendarPeriods.endDate = Utils.normaliseEndDate(endOfLastYear);
+                this.endDate = Utils.normaliseEndDate(endOfLastYear);
                 break;
             case "Custom":
+                this.calendarInputEnabled = true;
                 break;
             default:
                 console.log("DatePicker - applyDateRange: Unknown date range selected");
@@ -168,18 +122,9 @@ export class DatePicker implements IVisual {
                 return _exhaustiveCheck;
         }
 
-        this.startDateInput.value = Utils.formatDate(this.calendarPeriods.startDate, "inputBox");
-        this.endDateInput.value = Utils.formatDate(this.calendarPeriods.endDate, "inputBox");
-        console.log("DatePicker - applyDateRange:\nthis.startDateInput.value, this.calendarPeriods.startDate:", this.startDateInput.value, this.calendarPeriods.startDate, "\nthis.calendarPeriods.endDateInput.value, this.calendarPeriods.endDate:",
-            this.endDateInput.value, this.calendarPeriods.endDate);
-    }
-
-    private datePeriodChanged() {
-        if (!this.calendarPeriods.previousStartDate || !this.calendarPeriods.previousEndDate) return false
-        const hasChanged = (this.calendarPeriods.previousStartDate.getTime() !== this.calendarPeriods.startDate.getTime())
-            || (this.calendarPeriods.previousEndDate.getTime() !== this.calendarPeriods.endDate.getTime());
-        if (hasChanged) { console.log("DatePicker - datePeriodChanged - hasChanged:", hasChanged, "\nthis.previousStartDate:", this.calendarPeriods.previousStartDate.getTime(), "\nthis.calendarPeriods.startDate:", this.calendarPeriods.startDate.getTime(), "\nthis.previousEndDate:", this.calendarPeriods.previousEndDate.getTime(), "\nthis.calendarPeriods.endDate -", this.calendarPeriods.endDate.getTime()); }
-        return hasChanged;
+        this.startDateInput.value = Utils.formatDate(this.startDate, "inputBox");
+        this.endDateInput.value = Utils.formatDate(this.endDate, "inputBox");
+        console.log("DatePicker - applyDateRange:\nthis.startDate, this.endDate:", this.startDate, this.endDate, "\nthis.startDateInput.value, this.endDateInput.value:",  this.startDateInput.value, this.endDateInput.value, "\nthis.previousDateString:", this.previousDateString);
     }
 
     public getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction {
@@ -194,7 +139,6 @@ export class DatePicker implements IVisual {
     private applyFilter(datefield: any, startDate: Date, endDate: Date) {
             console.log("DatePicker - applyFilter - startDate, endDate:", startDate, endDate);
             if (datefield) {
-                // Create filter
                 const filter = new AdvancedFilter(
                     {
                         table: datefield.queryName.split(".")[0],
@@ -215,24 +159,20 @@ export class DatePicker implements IVisual {
                     filter,
                     "general",
                     "filter",
-                    this.getFilterAction(this.calendarPeriods.startDate, this.calendarPeriods.endDate)
+                    this.getFilterAction(this.startDate, this.endDate)
                 );
             }
     }
 
 
-    private splitDateString(dateStr: any) {
+    private splitAndApplyDateString(dateStr: any) {
         const dates = dateStr.split(" to ")
-        this.calendarPeriods.startDate = new Date(dates[0])
-        this.calendarPeriods.endDate = Utils.normaliseEndDate(new Date(dates[1]))
+        this.startDate = new Date(dates[0])
+        this.endDate = Utils.normaliseEndDate(new Date(dates[1]))
+        this.startDateInput.value = Utils.formatDate(this.startDate, "inputBox");
+        this.endDateInput.value = Utils.formatDate(this.endDate, "inputBox");
+        console.log("DatePicker - splitAndApplyDateString - this.startDate, this.endDate:", this.startDate, this.endDate)
     }
-
-    /*
-    private createDateString(startDate: Date, endDate: Date){
-        return `${Utils.formatDate(startDate, "sharedState")} to ${Utils.formatDate(endDate, "sharedState")}`;
-    }
-        */
-
 
     private updateSharedState(startDate: Date, endDate: Date) {
         const sharedState = Utils.createDateString(startDate, endDate);
@@ -244,10 +184,10 @@ export class DatePicker implements IVisual {
 
             }]
         });
+        this.dateString = sharedState;
     }
 
     constructor(options: VisualConstructorOptions) {
-        this.calendarPeriods = { ...DatePicker.CalendarDatePeriods } as ICalendarDatePeriods
         this.host = options.host;
         const element: HTMLElement = options.element;
         this.rootSelection = d3Select(element)
@@ -259,7 +199,7 @@ export class DatePicker implements IVisual {
         this.dateRangeContainer
             .append("div")
             .classed("containerLabel", true)
-            .text("Day, Week, Month, Year");
+            .text("Day, Week, Month, Year, All");
         this.dateRangeDropDown = this.dateRangeContainer
             .append("select")
             .classed("dateRangeDropdown", true);
@@ -280,12 +220,12 @@ export class DatePicker implements IVisual {
                 this.customDateContainer
                     .style("pointer-events", value === "Custom" ? "auto" : "none")
                     .style("opacity", value === "Custom" ? 1 : 0.5)
-                console.log("DatePicker - constructor - this.dateRangeDropDown - onChange - value:", value);
                 this.applyDateRange(value);
-                this.updateSharedState(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+                this.updateSharedState(this.startDate, this.endDate);
                 console.log("DatePicker - constructor - this.dateRangeDropDown - onChange - this.dateString:", this.dateString);
                 if (value !== "Custom" && DatePicker.dateField) {
-                    this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+                    this.calendarInputEnabled = false;
+                    this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
                 }
             });
 
@@ -302,42 +242,24 @@ export class DatePicker implements IVisual {
         this.startDateInputContainer = this.dateInputContainer
             .append("div")
             .classed("startDateInputContainer", true)
-        const inputBoxStartDate = Utils.formatDate(this.calendarPeriods.startDate, "inputBox");
+        const inputBoxStartDate = Utils.formatDate(this.startDate, "inputBox");
         this.startDateInput = this.startDateInputContainer
             .append("input")
             .attr("type", "text")
             .attr("id", "startInput")
-            .property("value", Utils.formatDate(this.calendarPeriods.startDate, "inputBox"))
+            .property("value", Utils.formatDate(this.startDate, "inputBox"))
             .node() as HTMLInputElement;
 
-        // Calendar icon (using Unicode or SVG) 
         this.calendarIconStartDate = this.startDateInputContainer
             .append("span")
             .classed("calendarIcon", true)
-            .html("📅")  // simple emoji, can replace with SVG           
-            .on("click", () => {
-                if (!this.dataView) return;
-                if (this.calendarInputEnabled === true) {
-                    console.log("DatePicker - constructor - this.calendarIconStartDate - this.calendarInputEnabled:", this.calendarInputEnabled)
-                    this.targetInput = this.startDateInput;
-                    const heightUpdate = this.calendarInteractive ? 400 : 80;
-                    this.rootSelection.style("height", `${heightUpdate}px`) // show calendar 
+            .html("📅")  
 
-                    const today = new Date();
-                    this.calendarPeriods.currentMonth = this.calendarPeriods.startDate
-                        ? this.calendarPeriods.startDate.getMonth()
-                        : today.getMonth();
-                    this.calendarPeriods.currentYear = this.calendarPeriods.startDate
-                        ? this.calendarPeriods.startDate.getFullYear()
-                        : today.getFullYear();
-                }
-            });
         this.endDateInputContainer = this.dateInputContainer
             .append("div")
             .classed("endDateInputContainer", true)
-        // Initialize with today's date 
 
-        const inputBoxEndDate = Utils.formatDate(this.calendarPeriods.endDate, "inputBox");
+        const inputBoxEndDate = Utils.formatDate(this.endDate, "inputBox");
         this.endDateInput = this.endDateInputContainer
             .append("input")
             .attr("type", "text")
@@ -347,21 +269,7 @@ export class DatePicker implements IVisual {
         this.calendarIconEndDate = this.endDateInputContainer
             .append("span")
             .classed("calendarIcon", true)
-            .html("📅")  // simple emoji, can replace with SVG 
-            .on("click", () => {
-                if (this.calendarInputEnabled === true) {
-                    console.log("DatePicker - constructor - this.calendarIconEndDate - this.calendarInputEnabled:", this.calendarInputEnabled)
-                    this.targetInput = this.endDateInput;
-                    if (this.calendarPeriods.startDate) {
-                        this.calendarPeriods.currentMonth = this.calendarPeriods.startDate.getMonth();
-                        this.calendarPeriods.currentYear = this.calendarPeriods.startDate.getFullYear();
-                    } else {
-                        const today = new Date();
-                        this.calendarPeriods.currentMonth = today.getMonth();
-                        this.calendarPeriods.currentYear = today.getFullYear();
-                    }
-                }
-            });
+            .html("📅")  
     }
 
     public update(options: VisualUpdateOptions) {
@@ -387,14 +295,16 @@ export class DatePicker implements IVisual {
                 }
             }
            
-            if (!this.filterApplied) {//} && options.jsonFilters.length == 0){
+            if (!this.filterApplied) {
                 console.log("DatePicker update - !this.filterApplied (filter not applied:", !this.filterApplied);
-                this.applyFilter(DatePicker.dateField, this.calendarPeriods.startDate, this.calendarPeriods.endDate);
+                this.applyFilter(DatePicker.dateField, this.startDate, this.endDate);
                 this.filterApplied = true;
             }
             const dateRangetext =  this.dataView.metadata?.objects?.sharedDateRange?.dateString;
-            this.dateString = dateRangetext && dateRangetext || Utils.createDateString(this.calendarPeriods.startDate, this.calendarPeriods.endDate);
-            console.log("DatePicker update - this.dateString:", this.dateString);
+            this.dateString = dateRangetext && dateRangetext //|| Utils.createDateString(this.startDate, this.endDate);
+            console.log("DatePicker update - this.dateString, dateRangetext:", this.dateString, dateRangetext);
+            console.log("DatePicker - update - !(this.previousDateString === this.dateString)", !(this.previousDateString === this.dateString));
+            this.dateString && !(this.previousDateString === this.dateString) && this.splitAndApplyDateString(this.dateString);
         
             console.log("*** End of DatePicker update ***");
             

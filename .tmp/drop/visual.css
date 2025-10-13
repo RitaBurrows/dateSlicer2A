@@ -1,17 +1,10 @@
-p {
-  font-size: 20px;
-  font-weight: bold;
-}
-p em {
-  background: yellow;
-  padding: 5px;
-}
 .calendarRoot {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   width: 100%;
   color: #255A91;
+  font-family: 'Calibri', sans-serif;
 }
 .calendarRoot .dropDownContainer .dateRangeDropdown {
   height: 30px;

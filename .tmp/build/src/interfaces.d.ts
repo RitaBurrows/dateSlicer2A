@@ -1,9 +1,5 @@
 export interface ICalendarDatePeriods {
-    currentMonth: number;
-    currentYear: number;
     endDate: Date;
-    previousEndDate: Date | null;
-    previousStartDate: Date | null;
     startDate: Date;
 }
 export interface ICalendarMargins {
