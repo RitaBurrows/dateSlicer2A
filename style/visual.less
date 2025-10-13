@@ -29,13 +29,9 @@
             cursor: pointer;
         }
     }
+    
 
-    //
-
-    .customDateContainer {        
-        //width: 230px;
-        //width: 50%;
-        //display: flex;
+    .customDateContainer { 
         align-items: center;
         
         .dateInputContainer {
@@ -49,13 +45,10 @@
                 input {
                     width: 100px;
                     height: 30px;
-                    //cursor: pointer;
                     font-size: 12px;
-                    //padding: 4px;
                     color: #255A91;
-                    //gap: 4px;
-                    box-sizing: border-box; /* Ensure padding doesn't affect total width */
-                    padding-right: 30px; /* Space for the icon */
+                    box-sizing: border-box; 
+                    padding-right: 30px;
                 }
                 .calendarIcon {
                     position: absolute;
@@ -73,54 +66,6 @@
             }
         }
     }
-   
-
-    .calendarContainer {
-        position: absolute;
-        top: 80px;
-        left: 0px;
-        z-index: 1000;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        height: 310px;
-        width: 100%;
-        max-width: 400px;
-
-            .calendarSvg {
-
-                fill: #255A91;
-
-                .arrowUp, .arrowDown {
-                    font-size: 12px;
-                    cursor: pointer;
-                    display: auto;
-                }
-
-                .monthLabel {                    
-                    text-anchor: end;
-                    font-size: 18px;
-                }
-
-                .weekdayLabel {
-                    font-size: 14px;
-
-                }
-
-                .dayGroup .dayCell {
-                    fill: #ffffff;
-                    transition: fill 0.3s, opacity 0.3s;
-                }
-
-                .dayGroup .dayCell:hover {
-                    fill: orange;
-                    opacity: 0.8;
-                }
-
-            }
-    }
-    
 
         .containerLabel {
             display: block;
@@ -129,7 +74,6 @@
         }
 
     .disabled {
-        //; //auto
-        opacity: 0.5; //1
+        opacity: 0.5;
     }
 }

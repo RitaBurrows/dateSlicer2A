@@ -48,27 +48,19 @@ export class DatePicker implements IVisual {
 
         switch (range) {
             case "Today":
-                ///this.currentMonth = today.getMonth();
-                ///this.currentYear = today.getFullYear();
                 this.startDate = new Date(today);
-                //const endofToday = new Date(today);
                 this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Yesterday":
                 const yesterday = new Date(today);
                 yesterday.setDate(today.getDate() - 1);
-                ///this.currentMonth = yesterday.getMonth();
-                ///this.currentYear = yesterday.getFullYear();
                 this.startDate = new Date(yesterday);
                 const endofYesterday = new Date(yesterday);
                 this.endDate = Utils.normaliseEndDate(endofYesterday);
-                // For single day ranges, just jump to the month containing that day
                 break;
             case "This Week":
             case "Last Week":
-                // For week ranges, just jump to the month containing Monday of that week
                 const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon,...6=Sat 
-                // Offset so Monday is always the first day 
                 const weekStartOffset = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
                 const monday = new Date(today);
                 monday.setDate(today.getDate() - weekStartOffset);
@@ -77,38 +69,26 @@ export class DatePicker implements IVisual {
                 }
                 const sunday = Utils.normaliseEndDate(new Date(monday));
                 sunday.setDate(monday.getDate() + 6);
-                ///this.currentMonth = monday.getMonth();
-                ///this.currentYear = monday.getFullYear();
                 this.startDate = new Date(monday);
                 this.endDate = (range === "Last Week") ? new Date(sunday) : new Date(Utils.normaliseEndDate(today));
                 break;
             case "This Month":
-                ///this.currentMonth = today.getMonth();
-                ///this.currentYear = today.getFullYear();
                 this.startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                //const endDateThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Last Month":
                 const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                ///this.currentMonth = lastMonth.getMonth();
-                ///this.currentYear = lastMonth.getFullYear();
                 this.startDate = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
                 const endDateLastMonth = new Date(lastMonth.getFullYear(), lastMonth.getMonth() + 1, 0);
                 this.endDate = Utils.normaliseEndDate(endDateLastMonth);
                 break;
             case "This Year":
-                ///this.currentMonth = today.getMonth();
-                ///this.currentYear = today.getFullYear();
                 const startOfYear = new Date(today.getFullYear(), 0, 1);
                 this.startDate = new Date(startOfYear);
-                //const endOfYear = new Date(today.getFullYear(), 11, 31);
                 this.endDate = Utils.normaliseEndDate(today);
                 break;
             case "Last Year":
                 const lastYear = new Date(today.getFullYear() - 1, 0, 1);
-                ///this.currentMonth = lastYear.getMonth();
-                ///this.currentYear = lastYear.getFullYear();
                 this.startDate = new Date(lastYear);
                 const endOfLastYear = new Date(lastYear.getFullYear(), 11, 31);
                 this.endDate = Utils.normaliseEndDate(endOfLastYear);

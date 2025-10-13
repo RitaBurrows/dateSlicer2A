@@ -34,9 +34,7 @@
   font-size: 12px;
   color: #255A91;
   box-sizing: border-box;
-  /* Ensure padding doesn't affect total width */
   padding-right: 30px;
-  /* Space for the icon */
 }
 .calendarRoot .customDateContainer .dateInputContainer .startDateInputContainer .calendarIcon,
 .calendarRoot .customDateContainer .dateInputContainer .endDateInputContainer .calendarIcon {
@@ -47,43 +45,6 @@
   font-size: 12px;
   cursor: pointer;
   user-select: none;
-}
-.calendarRoot .calendarContainer {
-  position: absolute;
-  top: 80px;
-  left: 0px;
-  z-index: 1000;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  height: 310px;
-  width: 100%;
-  max-width: 400px;
-}
-.calendarRoot .calendarContainer .calendarSvg {
-  fill: #255A91;
-}
-.calendarRoot .calendarContainer .calendarSvg .arrowUp,
-.calendarRoot .calendarContainer .calendarSvg .arrowDown {
-  font-size: 12px;
-  cursor: pointer;
-  display: auto;
-}
-.calendarRoot .calendarContainer .calendarSvg .monthLabel {
-  text-anchor: end;
-  font-size: 18px;
-}
-.calendarRoot .calendarContainer .calendarSvg .weekdayLabel {
-  font-size: 14px;
-}
-.calendarRoot .calendarContainer .calendarSvg .dayGroup .dayCell {
-  fill: #ffffff;
-  transition: fill 0.3s, opacity 0.3s;
-}
-.calendarRoot .calendarContainer .calendarSvg .dayGroup .dayCell:hover {
-  fill: orange;
-  opacity: 0.8;
 }
 .calendarRoot .containerLabel {
   display: block;
