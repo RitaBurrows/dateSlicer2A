@@ -1,10 +1,10 @@
-//@import (less) "/node_modules/powerbi-visuals-utils-interactivityutils/lib/index.css";
-//@import (less) "/node_modules/powerbi-visuals-utils-chartutils/lib/index.css";
+@import (less) "/node_modules/powerbi-visuals-utils-interactivityutils/lib/index.css";
+@import (less) "/node_modules/powerbi-visuals-utils-chartutils/lib/index.css";
 
 .calendarRoot {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 40px;
     width: 100%;
     color: #255A91;
     font-family: 'Calibri', sans-serif;
@@ -14,20 +14,19 @@
         
         .rangeTypeDropDown, .rangePeriodDropDown {
             height: 30px;
-            width: 65px;
-            font-size: 12px;
+            width: 70px;
+            font-size: 16px;
             color: #255A91;                        
-            margin-left: 5px;
+            margin-left: 10px;
         }
 
         #rangeQuantity  {
-        width: 35px;
+        width: 70px;
         height: 30px;
-        margin-left: 5px;
-        font-size: 12px;
+        margin-left: 10px;
+        font-size: 16px;
         color: #255A91;
         box-sizing: border-box;
-
     }
 
         select {
@@ -43,14 +42,14 @@
         
         .dateInputContainer {
             display: flex;
+            gap: 10px;
             
             .startDateInputContainer, .endDateInputContainer {
             position: relative;
             display: inline-block;
-            margin-right: 8px;
 
                 input {
-                    width: 100px;
+                    width: 120px;
                     padding-right: 30px;
                 }
                 .calendarIcon {
@@ -58,11 +57,7 @@
                     transform: translateY(-50%);
                     right: 5px;
                     top: 50%;
-                    font-size: 12px;
-                    //width: 16px;
-                    //height: 16px;
-                    //vertical-align: middle;
-                    //margin-left: 4px;
+                    font-size: 16px;
                     cursor: pointer;
                     user-select: none;
                 }
@@ -72,8 +67,11 @@
 
         .containerLabel {
             display: block;
-            font-size: 14px;
-            margin-bottom: 20px;
+            font-size: 15px;
+            margin-bottom: 16px;
+            margin-top: 8px;
+            font-weight: 575;
+            font-family: "Segoe UI";
         }
 
     .disabled {
@@ -84,25 +82,25 @@
     select, 
     input { 
         height: 30px;
-        font-size: 12px; 
+        font-size: 16px; 
         color: #255A91; 
-        border: 0.5px solid #255A91;       // default border color 
+        border: 0.5px solid #255A91;       
         border-radius: 4px; 
         padding: 0 5px; 
         box-sizing: border-box; 
-        outline: none;                   // remove default browser outline 
-        transition: border-color 0.2s, box-shadow 0.2s;  // smooth visual feedback 
+        outline: none;                   
+        transition: border-color 0.2s, box-shadow 0.2s;  
 
     } 
 
     select:hover,
     input:hover { 
-        border-color: #1b4b7c;           // darker shade on hover 
+        border-color: #75A7DC;      
     } 
 
     select:focus, 
     input:focus { 
-        border-color: #0a3b6e; 
+        border-color: #75A7DC; 
         box-shadow: 0 0 3px rgba(37, 90, 145, 0.5); 
     }
 

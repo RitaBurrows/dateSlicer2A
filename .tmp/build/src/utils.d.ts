@@ -1,4 +1,5 @@
 export declare class Utils {
+    static debounceFiltering<F extends (...args: any[]) => void>(func: F, wait: number): (...args: Parameters<F>) => void;
     static formatDate(date: Date, stringType: string): string;
     static createDateString(startDate: Date, endDate: Date): string;
     static getNormalisedYearStart(date: Date): Date;

@@ -15,7 +15,6 @@ export declare class DatePicker implements IVisual {
     private dateRangeContainer;
     private dateRangeDropDown;
     private dateRangeType;
-    private dateRangeQuantity;
     private dateRangePeriod;
     private endDate;
     private endDateInput;
@@ -23,7 +22,6 @@ export declare class DatePicker implements IVisual {
     private filterApplied;
     private host;
     private jsonFilters;
-    private options;
     private previousDateString;
     private rangeTypeDropDown;
     private rangeQuantityInput;
@@ -34,6 +32,7 @@ export declare class DatePicker implements IVisual {
     private rootSelection;
     private getDateRange;
     getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction;
+    private createFilter;
     private applyFilter;
     private splitAndApplyDateString;
     private updateSharedState;

@@ -1,5 +1,16 @@
 export class Utils {
 
+    public static debounceFiltering<F extends (...args: any[]) => void>( 
+        func: F, 
+        wait: number 
+        ): (...args: Parameters<F>) => void { 
+        let timeoutId: number | undefined; 
+        return (...args: Parameters<F>) => { 
+            if (timeoutId) clearTimeout(timeoutId); 
+            timeoutId = window.setTimeout(() => func(...args), wait); 
+        }; 
+    } 
+ 
     public static formatDate(date: Date, stringType: string): string {
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");

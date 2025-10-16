@@ -3,8 +3,6 @@ export type DateRangeType =
     | "Last"
     | "Custom"
 
-export type DateRangeQuantity = number | null;
-
 export type DateRangePeriod =
     | "Day"
     | "Days"
