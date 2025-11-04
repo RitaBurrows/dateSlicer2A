@@ -1,0 +1,46 @@
+#Node dependencies 
+node_modules/ 
+
+#Power BI build artifacts 
+
+dist/ 
+pbiviz.json.backup 
+
+#Power BI packaged visual files 
+*.pbiviz 
+
+#Logs 
+npm-debug.log* 
+yarn-debug.log* 
+yarn-error.log* 
+pnpm-debug.log* 
+
+#IDE and OS files 
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/ 
+*.swp 
+*.swo 
+
+#Temporary files 
+.tmp/
+temp/
+.cache/
+coverage/
+*.zip 
+
+#TypeScript 
+*.tsbuildinfo 
+
+#Environment files 
+.env 
+.env.local 
+.env.*.local 
+
+#Test and report output 
+test-results/
+junit/
+coverage/ 
+
+ 
