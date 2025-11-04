@@ -1,8 +1,10 @@
+# Webpack stats file 
+webpack.statistics.*.html 
+
 #Node dependencies 
 node_modules/ 
 
 #Power BI build artifacts 
-
 dist/ 
 pbiviz.json.backup 
 
