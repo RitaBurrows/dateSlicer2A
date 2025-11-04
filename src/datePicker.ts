@@ -1,4 +1,4 @@
-//"use strict";
+"use strict";
 
 import powerbiVisualsApi from "powerbi-visuals-api";
 import { AdvancedFilter } from "powerbi-models";
@@ -12,6 +12,7 @@ import IVisual = powerbiVisualsApi.extensibility.visual.IVisual;
 import DataView = powerbiVisualsApi.DataView;
 import DataViewMetadataColumn = powerbiVisualsApi.DataViewMetadataColumn
 import DataViewPropertyValue = powerbiVisualsApi.DataViewPropertyValue;
+import FilterAction = powerbiVisualsApi.FilterAction
 import IVisualHost = powerbiVisualsApi.extensibility.visual.IVisualHost;
 
 import "./../style/visual.less";
@@ -26,7 +27,7 @@ export class DatePicker implements IVisual {
     private calendarIconStartDate: D3Selection<any, any, any, any>;
     private calendarInputEnabled: boolean = false;
     private customDateContainer: D3Selection<any, any, any, any>;
-    private dataView: powerbiVisualsApi.DataView;
+    private dataView: DataView;
     private static dateField: DataViewMetadataColumn | null;
     private dateString: DataViewPropertyValue | null
     private dateInputContainer: D3Selection<any, any, any, any>;
@@ -119,13 +120,13 @@ export class DatePicker implements IVisual {
         console.log("DatePicker getDateRange - this.startDate, this.endDate", this.startDate, this.endDate)
     }
 
-    public getFilterAction(startDate: Date, endDate: Date): powerbiVisualsApi.FilterAction {
+    public getFilterAction(startDate: Date, endDate: Date): FilterAction {
         return startDate !== undefined
             && endDate !== undefined
             && startDate !== null
             && endDate !== null
-            ? powerbiVisualsApi.FilterAction.merge
-            : powerbiVisualsApi.FilterAction.remove;
+            ? FilterAction.merge
+            : FilterAction.remove;
     }
 
     private createFilter(datefield: DataViewMetadataColumn, startDate: Date, endDate: Date): AdvancedFilter  {
